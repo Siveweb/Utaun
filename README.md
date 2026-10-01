@@ -4,6 +4,6 @@ Click here for the official Discord server!
   <img src="image/無題284_20261001224000.png" alt="Discord" width="150px">
 </a>
 
-Check the terms of use from the official website!  
+Utaun Official Website! 
 <a href="https://siveweb.github.io/Utaun-site/index.html">
   <img src="image/無題284_20261001224229.png" alt="UtaunOfficialSite" width="150px">
