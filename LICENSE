@@ -1,24 +1,20 @@
-Terms of Use 
+Terms of Use
 
-[About Utaun Core]  
+[About Utaun Core]
 
-Utaun is open-source. Everyone is welcome to freely rewrite code or create plugins! However, to ensure safe operation and prevent abuse for financial gain, please follow these rules.  
+Utaun is open-source. Everyone is welcome to freely rewrite code or create plugins! However, to ensure safe operation and prevent abuse for financial gain, please follow these rules.
 
-■ Copyright  
-The copyright of the Utaun core and any code adopted in future official updates belongs to 'SiveProject', the software development project including all participating developers.  
+■ Copyright
+The copyright of the Utaun core and any code adopted in future official updates belongs to 'SiveProject', the software development project including all participating developers.
 
-■ Prohibited Actions  
-・Commercial use (paid distribution, profit-making activities using this software, etc.)  
-・Injecting viruses, trojan horses, malware, etc., for malicious use  
-・Redistributing this software outside of official channels (GitHub: SiveProject) (excluding permitted mirrors)  
+■ Prohibited Actions
+・Commercial use (paid distribution, profit-making activities using this software, etc.)
+・Injecting viruses, trojan horses, malware, etc., for malicious use
+・Redistributing this software outside of official channels (GitHub: SiveProject) (excluding permitted mirrors)
 
-■ Rules for Code Rewriting and Plugin Creation  
-・[How to rewrite] To rewrite code, download the '.py' files from GitHub and experiment in your local environment such as your PC.  
-・Do not distribute modified cores or plugins to the general public without official permission.  
-・When you say 'I rewrote it like this!' or 'I made a plugin!', please feel free to share actual execution screens (screenshots or videos) on the official Discord server!  
-・[Important] If you want to build and officially release modified source code into app formats (binary formats) such as '.exe', '.app', or Linux executables, it will be decided through discussion on the official Discord server in advance. If several members gather and decide there, the build and release will proceed without waiting for other absent members to join (to prioritize development speed).  
+[About Generated Outputs]
 
-⚠️ Warning  
-The author and project affiliates assume no responsibility for 'Utaun' downloaded from unofficial locations. For safety, please always download from the official GitHub (or official site links).  
+(Voicebanks, wav, icon.jpg / icon.bmp, oto.ini, etc.)
+You (the distributor) are free to set your own terms of use in readme.txt.
 
-These terms apply starting October 7, 2026.  
+These terms apply starting October 7, 2026.
