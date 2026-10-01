@@ -9,7 +9,7 @@ Utaun Official Website!
   <img src="image/無題284_20261001224229.png" alt="UtaunOfficialSite" width="150px">
 </a>
 <br>
-  
+　  
 ■ Rules for Code Rewriting and Plugin Creation
 
 ・**How to rewrite** To rewrite code, download the '.py' files from GitHub and experiment in your local environment such as your PC.
