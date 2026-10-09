@@ -1,0 +1,188 @@
+name: Build Cross-Platform Utaun App (Perfect Fixed)
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'ver-*'
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+
+    steps:
+    - name: コードの取得
+      uses: actions/checkout@v4
+
+    - name: Pythonのセットアップ
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: 必要なライブラリのインストール
+      run: |
+        python -m pip install --upgrade pip
+        pip install numpy Pillow pyinstaller
+
+    - name: 【Windows用】コードの準備 (そのまま)
+      if: matrix.os == 'windows-latest'
+      run: |
+        echo "Windowsビルドの準備完了"
+
+    - name: 【Mac/Linux用】アップデート機能やパスを完全自動手術
+      if: matrix.os != 'windows-latest'
+      shell: bash
+      run: |
+        # 1. winsoundのエラー防止と、Mac/Linuxの標準再生コマンドへの置き換え
+        sed -i 's/import winsound/# import winsound/g' utaun.py
+        if [ "${{ matrix.os }}" = "macos-latest" ]; then
+          sed -i "s/winsound.PlaySound(tmp_name, winsound.SND_FILENAME)/import subprocess; subprocess.Popen(['afplay', tmp_name])/g" utaun.py
+        else
+          sed -i "s/winsound.PlaySound(tmp_name, winsound.SND_FILENAME)/import subprocess; subprocess.Popen(['aplay', tmp_name])/g" utaun.py
+        fi
+        
+        # 2. パス検索関数の手術
+        cat << 'EOF' > patch_path.py
+import re
+
+with open("utaun.py", "r", encoding="utf-8") as f:
+    code = f.read()
+
+old_get_doc = r'def get_documents_path\(\):\s+.*?return os\.path\.join\(home, [\'"]Documents[\'"]\)'
+new_get_doc = """def get_documents_path():
+  home = os.path.expanduser('~')
+  path = os.path.join(home, 'Documents')
+  if not os.path.exists(path):
+    os.makedirs(path, exist_ok=True)
+  return path"""
+
+code = re.sub(old_get_doc, new_get_doc, code, flags=re.DOTALL)
+
+old_copy_admin = r'def copy_with_admin_if_needed\(src, target_dir, char_name\):\s+.*?return True, [\'"][\'"]'
+new_copy_admin = """def copy_with_admin_if_needed(src, target_dir, char_name):
+  dest_folder = os.path.join(target_dir, char_name)
+  try:
+    if os.path.exists(dest_folder):
+      shutil.rmtree(dest_folder)
+    shutil.copytree(src, dest_folder)
+    return True, ''
+  except Exception as e:
+    return False, str(e)"""
+
+code = re.sub(old_copy_admin, new_copy_admin, code, flags=re.DOTALL)
+with open("utaun.py", "w", encoding="utf-8") as f:
+    f.write(code)
+EOF
+        python patch_path.py
+
+        # 3. アップデート処理（perform_update）の中身をMac/Linux用に丸ごと書き換え
+        cat << 'EOF' > patch_update.py
+import re
+
+with open("utaun.py", "r", encoding="utf-8") as f:
+    code = f.read()
+
+old_update_func = r'def perform_update\(download_url\):.*?^(?=\s*def |\s*class )'
+
+new_update_func = """def perform_update(download_url):
+  try:
+    if getattr(sys, 'frozen', False):
+      current_exe = sys.executable
+      current_dir = os.path.dirname(current_exe)
+    else:
+      messagebox.showwarning('注意', '開発環境のためシミュレーションのみ行います。')
+      return
+
+    temp_dir = tempfile.mkdtemp(prefix='utaun_update_')
+    zip_path = os.path.join(temp_dir, 'update.zip')
+    extract_dir = os.path.join(temp_dir, 'extracted')
+
+    messagebox.showinfo('ダウンロード中', 'アップデートファイルをダウンロードしています...')
+    urllib.request.urlretrieve(download_url, zip_path)
+
+    os.makedirs(extract_dir, exist_ok=True)
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+      zip_ref.extractall(extract_dir)
+
+    extracted_items = os.listdir(extract_dir)
+    if len(extracted_items) == 1 and os.path.isdir(os.path.join(extract_dir, extracted_items[0])):
+      source_content_dir = os.path.join(extract_dir, extracted_items[0])
+    else:
+      source_content_dir = extract_dir
+
+    sh_file = os.path.join(current_dir, 'update.sh')
+    sh_content = f'''#!/bin/bash
+sleep 2
+DEST_DOC="$HOME/Documents"
+rm -rf "$DEST_DOC/子音部・濁音部フォルダ"
+if [ -d "{source_content_dir}/子音部・濁音部フォルダ" ]; then
+    mkdir -p "$DEST_DOC/子音部・濁音部フォルダ"
+    cp -r "{source_content_dir}/子音部・濁音部フォルダ/"* "$DEST_DOC/子音部・濁音部フォルダ/"
+fi
+rm -f "$DEST_DOC/oto.ini"
+if [ -f "{source_content_dir}/oto.ini" ]; then
+    cp "{source_content_dir}/oto.ini" "$DEST_DOC/oto.ini"
+fi
+
+cd "{current_dir}"
+NEW_APP=$(find "{source_content_dir}" -maxdepth 1 -name "*utaun*" -o -name "*Utaun*" | head -n 1)
+if [ ! -z "$NEW_APP" ]; then
+    cp "$NEW_APP" "{current_dir}/"
+    find . -maxdepth 1 -name "*utaun*" -o -name "*Utaun*" ! -name "$(basename "$NEW_APP")" -delete
+    chmod +x "$(basename "$NEW_APP")"
+    
+    if [ "$(uname)" = "Darwin" ]; then
+        open "$(basename "$NEW_APP")" &
+    else
+        xdg-open "$(basename "$NEW_APP")" &
+    fi
+fi
+rm -rf "{temp_dir}"
+'''
+    with open(sh_file, 'w', encoding='utf-8') as f:
+      f.write(sh_content)
+    os.chmod(sh_file, 0o755)
+    subprocess.Popen(['/bin/bash', sh_file])
+    sys.exit(0)
+
+  except Exception as e:
+    messagebox.showerror('アップデートエラー', f'アップデートの適用中にエラーが発生しました:\\n{e}')
+"""
+
+code_patched = re.sub(old_update_func, new_update_func, code, flags=re.DOTALL | re.MULTILINE)
+with open("utaun.py", "w", encoding="utf-8") as f:
+    f.write(code_patched)
+EOF
+        python patch_update.py
+
+    - name: アプリの作成 (PyInstaller)
+      run: pyinstaller --onefile --noconsole utaun.py
+
+    - name: 各OSごとのファイル圧縮 (Windows)
+      if: matrix.os == 'windows-latest'
+      run: powershell Compress-Archive -Path dist/*.exe -DestinationPath utaun-windows.zip
+
+    - name: 各OSごとのファイル圧縮 (Mac)
+      if: matrix.os == 'macos-latest'
+      run: zip -r utaun-mac.zip dist/
+
+    - name: 各OSごとのファイル圧縮 (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: zip -r utaun-linux.zip dist/
+
+    - name: GitHub Releasesへ3つのアプリを同時に自動公開
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          utaun-windows.zip
+          utaun-mac.zip
+          utaun-linux.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
