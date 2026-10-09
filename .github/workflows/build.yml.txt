@@ -1,0 +1,93 @@
+# パソコンが使えないため一時的にこのymlファイルやフォルダなどを置かせてください！
+# 発案者が規約違反をしてごめんなさい！
+# 【Sive】らららより！​
+name: Build Cross-Platform Utaun App
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'ver-1.1.0'
+      
+permissions:
+  contents: write
+  
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+
+    steps:
+    - name: コードの取得
+      uses: actions/checkout@v4
+
+    - name: Pythonのセットアップ
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: 必要なライブラリのインストール
+      run: |
+        python -m pip install --upgrade pip
+        pip install numpy Pillow pyinstaller
+
+    - name: 【Windows用】コードの準備
+      if: matrix.os == 'windows-latest'
+      run: |
+        echo "Windowsビルドの準備完了"
+
+    - name: 【Mac/Linux用】Pythonで安全に自動書き換え
+      if: matrix.os != 'windows-latest'
+      shell: bash
+      run: |
+        python3 -c "
+        with open('utaun.py', 'r', encoding='utf-8') as f:
+            code = f.read()
+        
+        # 1. winsoundをコメントアウトしてMac/Linux用の音声再生に置き換え
+        code = code.replace('import winsound', '# import winsound')
+        if '${{ matrix.os }}' == 'macos-latest':
+            code = code.replace('winsound.PlaySound(tmp_name, winsound.SND_FILENAME)', \"import subprocess; subprocess.Popen(['afplay', tmp_name])\")
+        else:
+            code = code.replace('winsound.PlaySound(tmp_name, winsound.SND_FILENAME)', \"import subprocess; subprocess.Popen(['aplay', tmp_name])\")
+        
+        with open('utaun.py', 'w', encoding='utf-8') as f:
+            f.write(code)
+        "
+        
+        # 2. パス検索関数の手術を実行
+        python3 patch_path.py
+
+        # 3. アップデート処理の手術を実行
+        python3 patch_update.py
+
+    - name: アプリの作成 (PyInstaller)
+      run: pyinstaller --onefile --noconsole utaun.py
+
+    - name: 各OSごとのファイル圧縮 (Windows)
+      if: matrix.os == 'windows-latest'
+      run: powershell Compress-Archive -Path dist/*.exe -DestinationPath utaun-windows.zip
+
+    - name: 各OSごとのファイル圧縮 (Mac)
+      if: matrix.os == 'macos-latest'
+      run: zip -r utaun-mac.zip dist/
+
+    - name: 各OSごとのファイル圧縮 (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: zip -r utaun-linux.zip dist/
+
+    - name: GitHub Releasesへ自動公開
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          utaun-windows.zip
+          utaun-mac.zip
+          utaun-linux.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
