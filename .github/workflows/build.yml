@@ -10,7 +10,10 @@ on:
       - master
     tags:
       - 'ver-1.1.0'
-
+      
+permissions:
+  contents: write
+  
 jobs:
   build:
     name: Build for ${{ matrix.os }}
