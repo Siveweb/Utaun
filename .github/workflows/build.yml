@@ -9,7 +9,7 @@ on:
       - main
       - master
     tags:
-      - 'ver-*'
+      - 'ver-1.1.0'
 
 jobs:
   build:
