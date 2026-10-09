@@ -16,7 +16,7 @@ import zipfile
 from PIL import Image
 from pathlib import Path
 
-CURRENT_VERSION = 'ver-1.1.1'
+CURRENT_VERSION = 'ver-1.1.0 BETA'
 GITHUB_REPO = 'Siveweb/Utaun'
 TARGET_ZIP_NAME = 'utaun.zip'
 
