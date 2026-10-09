@@ -1,3 +1,6 @@
+# パソコンが使えないため一時的にこのpyファイルなどを置かせてください！
+# 発案者が規約違反をしてごめんなさい！
+# 【Sive】らららより！
 import re
 
 with open("utaun.py", "r", encoding="utf-8") as f:
