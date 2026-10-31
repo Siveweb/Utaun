@@ -1071,20 +1071,30 @@
               } catch (e) {
                 arr = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean); // 1行1ファイル形式
               }
-              consonantList = arr.map(norm);
+              consonantList = arr; // 取得用に元の名前のまま持つ（照合時だけNFCにそろえる）
             }
           } catch (e) {}
           const wavCache = new Map();
           async function loadConsonant(file) {
             if (wavCache.has(file)) return wavCache.get(file);
-            const buf = await fetchBuf(CONSONANT_DIR + encodeURIComponent(file));
+            // iPhone/Macで作ったファイル名は濁点が分解された形(NFD)のことがあるので、両方試す
+            const tries = [...new Set([file, file.normalize('NFD'), file.normalize('NFC')])];
+            let buf = null, lastErr = null;
+            for (const nm of tries) {
+              try { buf = await fetchBuf(CONSONANT_DIR + encodeURIComponent(nm)); break; }
+              catch (e) { lastErr = e; }
+            }
+            if (!buf) throw lastErr;
             const pcm = parseWav(buf, file, warnings);
             wavCache.set(file, pcm);
             return pcm;
           }
           async function findConsonant(roma, hira) {
             if (consonantList) {
-              const f = consonantList.find(n => (n.includes(roma) || n.includes(hira)) && n.endsWith('.wav'));
+              const f = consonantList.find(n => {
+                const s = norm(n);
+                return (s.includes(roma) || s.includes(hira)) && s.endsWith('.wav');
+              });
               return f ? loadConsonant(f) : null;
             }
             for (const f of [roma + '.wav', hira + '.wav']) {
