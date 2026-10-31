@@ -1063,7 +1063,16 @@
           let consonantList = null;
           try {
             const r = await fetch(CONSONANT_LIST_URL);
-            if (r.ok) consonantList = (await r.json()).map(norm);
+            if (r.ok) {
+              const text = (await r.text()).replace(/^\uFEFF/, '');
+              let arr;
+              try {
+                arr = JSON.parse(text);            // ["a.wav","b.wav"] 形式
+              } catch (e) {
+                arr = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean); // 1行1ファイル形式
+              }
+              consonantList = arr.map(norm);
+            }
           } catch (e) {}
           const wavCache = new Map();
           async function loadConsonant(file) {
