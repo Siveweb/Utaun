@@ -62,10 +62,23 @@
       padding: 8px 10px;
       outline: none;
       text-align: center;
-      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     .btn:active {
       background-color: #d0d0d0;
+    }
+
+    /* 音声有効化ボタンのスタイル（目立たせる） */
+    .btn-sound-toggle {
+      background-color: #ffe6e6;
+      border: 1px solid #c070c6;
+      font-weight: bold;
+      color: #c070c6;
+    }
+    .btn-sound-toggle.active {
+      background-color: #e6ffe6;
+      border: 1px solid #008000;
+      color: #008000;
     }
 
     .input-wrap {
@@ -254,6 +267,11 @@
         <button class="btn gear-btn" id="to-settings">⚙</button>
       </div>
 
+      <!-- 音声有効化 / ミュート切り替えボタン -->
+      <div class="form-group">
+        <button class="btn btn-sound-toggle" id="btn-sound-toggle" style="width:100%;">🔇 音声OFF (タップして有効化)</button>
+      </div>
+
       <div class="form-group">
         <span class="label" id="lbl-name">Name</span>
         <div class="input-wrap main-input">
@@ -385,52 +403,89 @@
       screenMain.classList.add('active');
     });
 
-    // --- 【完全iPhone対応】音声プレビュー構造 ---
+    // --- 【マスターゲイン＆ミュート制御方式】 ---
     let audioCtx = null;
+    let masterGain = null;
+    let isSoundEnabled = false;
 
-    function getAudioContext() {
+    // 音声エンジンの初期化（デフォルトでボリューム0のゲインノードを作成）
+    function initAudioContext() {
       if (!audioCtx) {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         audioCtx = new AudioContextClass();
+        
+        // マスターボリュームをコントロールするGainNodeを作成
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.0; // 最初はミュート（0）
+        masterGain.connect(audioCtx.destination);
       }
+    }
+
+    // ミュートボタン（音声有効化ボタン）の制御
+    const soundToggleBtn = document.getElementById('btn-sound-toggle');
+    
+    soundToggleBtn.addEventListener('touchstart', toggleSound, { passive: false });
+    soundToggleBtn.addEventListener('click', toggleSound);
+
+    function toggleSound(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      initAudioContext();
+
       if (audioCtx.state === 'suspended') {
         audioCtx.resume();
       }
-      return audioCtx;
+
+      isSoundEnabled = !isSoundEnabled;
+
+      if (isSoundEnabled) {
+        masterGain.gain.setValueAtTime(1.0, audioCtx.currentTime); // 音声ON
+        soundToggleBtn.textContent = '🔊 音声ON (タップしてミュート)';
+        soundToggleBtn.classList.add('active');
+      } else {
+        masterGain.gain.setValueAtTime(0.0, audioCtx.currentTime); // ミュート
+        soundToggleBtn.textContent = '🔇 音声OFF (タップして有効化)';
+        soundToggleBtn.classList.remove('active');
+      }
     }
 
-    // 画面のどこかを最初に触った瞬間にオーディオのロックを解除
-    ['touchstart', 'pointerdown', 'mousedown'].forEach(eventType => {
-      document.addEventListener(eventType, () => {
-        getAudioContext();
-      }, { once: true });
-    });
-
-    // iPhoneで確実に反応するよう pointerdown を使用
+    // 「♪ Listen」ボタン処理
     const listenBtn = document.getElementById('btn-listen');
-    listenBtn.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
+    
+    listenBtn.addEventListener('touchstart', handleListen, { passive: false });
+    listenBtn.addEventListener('click', handleListen);
+
+    function handleListen(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      initAudioContext();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      // まだ音声が有効になっていなければ自動で有効化してあげる
+      if (!isSoundEnabled) {
+        isSoundEnabled = true;
+        masterGain.gain.setValueAtTime(1.0, audioCtx.currentTime);
+        soundToggleBtn.textContent = '🔊 音声ON (タップしてミュート)';
+        soundToggleBtn.classList.add('active');
+      }
+
       try {
-        const ctx = getAudioContext();
-        if (ctx.state === 'suspended') {
-          ctx.resume();
-        }
-
-        // iOS対策：極小のダミー無音バッファを再生してスピーカーのセッションを強制起床
-        const dummyBuffer = ctx.createBuffer(1, 1, ctx.sampleRate);
-        const dummySource = ctx.createBufferSource();
-        dummySource.buffer = dummyBuffer;
-        dummySource.connect(ctx.destination);
-        dummySource.start(0);
-
         const height = parseInt(slider.value, 10) || 475;
-        playVowelSound(ctx, height);
+        playVowelSound(audioCtx, masterGain, height);
       } catch (err) {
         alert('再生エラー: ' + err.message);
       }
-    });
+    }
 
-    function playVowelSound(ctx, height) {
+    function playVowelSound(ctx, destinationNode, height) {
       const sr = ctx.sampleRate;
       const duration = 0.8;
       const numSamples = Math.floor(sr * duration);
@@ -464,7 +519,8 @@
 
       const source = ctx.createBufferSource();
       source.buffer = buffer;
-      source.connect(ctx.destination);
+      // 出力先を直接 destination ではなく、マスターボリューム（GainNode）経由にする
+      source.connect(destinationNode);
       source.start(ctx.currentTime);
     }
 
@@ -515,7 +571,7 @@
       },
       ko: {
         lblName: "이름", lblAuthor: "작성자", lblReadme: "설명", lblEncoding: "인코딩",
-        btnIcon: "이미지 선택", lblHeightTitle: "높이", btnListen: "♪ 들어보기", btnGen: "음원 생성!",
+        btnIcon: "이미지 선택", lblHeightTitle: "높이", lblListen: "♪ 들어보기", btnGen: "음원 생성!",
         stgTitle: "설정", stgLangLbl: "언어", stgThemeLbl: "테마", stgThemeLight: "라이트",
         stgThemeDark: "다크", stgShortcutsLbl: "단축키 활성화",
         stgShortcutTitle: "[ 단축키 ]", stgShortcutNote: "(※PC 전용)", toMain: "적용"
@@ -557,7 +613,7 @@
       },
       es: {
         lblName: "Nombre", lblAuthor: "Autor", lblReadme: "Readme", lblEncoding: "Codificación",
-        btnIcon: "SELECCIONAR IMAGEN", lblHeightTitle: "Altura", btnListen: "♪ Escuchar", btnGen: "¡GENERAR!",
+        btnIcon: "SELECIONAR IMAGEM", lblHeightTitle: "Altura", btnListen: "♪ Escuchar", btnGen: "¡GENERAR!",
         stgTitle: "Configuración", stgLangLbl: "Idioma", stgThemeLbl: "Tema", stgThemeLight: "Claro",
         stgThemeDark: "Oscuro", stgShortcutsLbl: "Habilitar atajos",
         stgShortcutTitle: "[ Teclas de atajo ]", stgShortcutNote: "(※Solo PC)", toMain: "Aplicar"
@@ -578,7 +634,7 @@
       },
       de: {
         lblName: "Name", lblAuthor: "Autor", lblReadme: "Readme", lblEncoding: "Kodierung",
-        btnIcon: "BILD AUSWÄHLEN", lblHeightTitle: "Höhe", btnListen: "♪ Anhören", btnGen: "GENERIEREN!",
+        vIcon: "BILD AUSWÄHLEN", lblHeightTitle: "Höhe", btnListen: "♪ Anhören", btnGen: "GENERIEREN!",
         stgTitle: "Einstellungen", stgLangLbl: "Sprache", stgThemeLbl: "Thema", stgThemeLight: "Hell",
         stgThemeDark: "Dunkel", stgShortcutsLbl: "Tastenkombinationen aktivieren",
         stgShortcutTitle: "[ Tastenkombinationen ]", stgShortcutNote: "(※Nur PC)", toMain: "Anwenden"
