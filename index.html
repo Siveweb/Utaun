@@ -54,18 +54,6 @@
     }
     .btn:active { background-color: #d0d0d0; }
 
-    .btn-sound-toggle {
-      background-color: #ffe6e6;
-      border: 1px solid #c070c6;
-      font-weight: bold;
-      color: #c070c6;
-    }
-    .btn-sound-toggle.active {
-      background-color: #e6ffe6;
-      border: 1px solid #008000;
-      color: #008000;
-    }
-
     .input-wrap {
       border: 1px solid #7f7f7f;
       background-color: #ffffff;
@@ -196,10 +184,6 @@
       <div class="top-header">
         <h1 class="app-title" id="lbl-title">Utaun</h1>
         <button class="btn gear-btn" id="to-settings">⚙</button>
-      </div>
-
-      <div class="form-group">
-        <button class="btn btn-sound-toggle" id="btn-sound-toggle" style="width:100%;">🔇 音声OFF (タップして有効化)</button>
       </div>
 
       <div class="form-group">
@@ -336,31 +320,24 @@
     });
 
     // =====================================================
-    //  音声まわり（iPhone / Android / PC 共通で鳴る構成）
-    //  ポイント:
-    //   - touchstart は使わず click だけ
-    //   - click の中で最初に resume() する
-    //   - iOSの消音スイッチ対策に audioSession を playback にする
+    //  音声まわり（試聴ボタン押下時に自動で有効化する構成）
     // =====================================================
     let audioCtx = null;
     let masterGain = null;
-    let isSoundEnabled = false;
 
     function initAudioContext() {
       if (!audioCtx) {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         audioCtx = new AudioContextClass();
         masterGain = audioCtx.createGain();
-        masterGain.gain.value = 0.0;
+        masterGain.gain.value = 1.0; // 常に音量オン
         masterGain.connect(audioCtx.destination);
       }
     }
 
-    // 無音のWAVを作って <audio> で再生し続ける（iOSの消音スイッチ対策）
-    // <audio> が再生中だと、iOSは「メディア再生」と判断して消音モードでも鳴らす
     let silentEl = null;
     function makeSilentWavUrl() {
-      const sr = 8000, n = sr; // 1秒
+      const sr = 8000, n = sr;
       const buf = new ArrayBuffer(44 + n * 2);
       const v = new DataView(buf);
       const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
@@ -385,10 +362,8 @@
       } catch (e) {}
     }
 
-    // クリック（ユーザー操作）の中で呼んで、音声を解除する
     async function unlockAudio() {
       startSilentAudio();
-      // iOSの消音スイッチがONでも鳴らす
       try {
         if (navigator.audioSession) navigator.audioSession.type = 'playback';
       } catch (e) {}
@@ -399,7 +374,6 @@
         try { await audioCtx.resume(); } catch (e) {}
       }
 
-      // 無音を1回鳴らして完全に解除（古いiOS向けの保険）
       try {
         const b = audioCtx.createBuffer(1, 1, 22050);
         const s = audioCtx.createBufferSource();
@@ -409,35 +383,11 @@
       } catch (e) {}
     }
 
-    function setSoundUI(on) {
-      isSoundEnabled = on;
-      if (on) {
-        masterGain.gain.setValueAtTime(1.0, audioCtx.currentTime);
-        soundToggleBtn.textContent = '🔊 音声ON (タップしてミュート)';
-        soundToggleBtn.classList.add('active');
-      } else {
-        masterGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
-        soundToggleBtn.textContent = '🔇 音声OFF (タップして有効化)';
-        soundToggleBtn.classList.remove('active');
-      }
-    }
-
-    const soundToggleBtn = document.getElementById('btn-sound-toggle');
-    soundToggleBtn.addEventListener('click', toggleSound);
-
-    async function toggleSound() {
-      await unlockAudio();
-      setSoundUI(!isSoundEnabled);
-    }
-
     const listenBtn = document.getElementById('btn-listen');
     listenBtn.addEventListener('click', handleListen);
 
     async function handleListen() {
       await unlockAudio();
-
-      // ミュート中なら自動でONにする
-      if (!isSoundEnabled) setSoundUI(true);
 
       try {
         const height = parseInt(slider.value, 10) || 475;
@@ -481,7 +431,6 @@
         peak = Math.max(peak, Math.abs(data[i]));
       }
 
-      // 音量を自動で正規化（小さすぎて聞こえない問題の対策）
       const norm = peak > 0 ? 0.6 / peak : 1;
       for (let i = 0; i < numSamples; i++) data[i] *= norm;
 
@@ -641,7 +590,6 @@
       }
     };
 
-    // iPhone限定の注意書き（消音モード）
     const silentNotes = {
       ja: "音が出ない場合は、iPhoneの消音モード（本体左側のスイッチ）をオフにしてください",
       en: "If you hear no sound, turn off Silent Mode (the switch on the left side of your iPhone).",
