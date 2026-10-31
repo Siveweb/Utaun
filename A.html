@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Utaun Web-BETA</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'MS Gothic', 'ＭＳ ゴシック', monospace;
+      color: #000;
+      user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #f0f0f0;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+    }
+
+    /* ウィンドウ枠 */
+    .tkinter-window {
+      width: 100%;
+      height: 100%;
+      max-width: 600px;
+      max-height: 850px;
+      background-color: #ffffff;
+      border: 1px solid #7f7f7f;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    /* 画面切り替え用 */
+    .screen {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+    }
+    .screen.active {
+      display: flex;
+    }
+
+    /* 共通ボタン・入力パーツ */
+    .btn {
+      background-color: #f0f0f0;
+      border: 1px solid #7f7f7f;
+      font-size: 12px;
+      cursor: pointer;
+      padding: 4px 10px;
+      outline: none;
+      text-align: center;
+    }
+    .btn:active {
+      background-color: #d0d0d0;
+    }
+
+    .input-wrap {
+      border: 1px solid #7f7f7f;
+      background-color: #ffffff;
+      display: inline-block;
+      padding: 1px;
+    }
+    input[type="text"] {
+      border: none;
+      outline: none;
+      font-size: 13px;
+      padding: 4px 6px;
+      background: transparent;
+    }
+
+    /* --- メイン画面のスタイル --- */
+    .top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 15px;
+    }
+    .app-title {
+      font-size: 28px;
+      font-weight: bold;
+      margin: 0;
+    }
+    .gear-btn {
+      font-size: 16px;
+      padding: 4px 8px;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+      text-align: center;
+      width: 100%;
+    }
+    .label {
+      font-size: 13px;
+      margin-bottom: 3px;
+      display: block;
+    }
+    .main-input {
+      width: 100%;
+    }
+    .main-textarea {
+      width: 100%;
+      height: 80px;
+      resize: none;
+      border: none;
+      outline: none;
+      font-size: 13px;
+      padding: 4px;
+    }
+
+    .radio-group {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      font-size: 12px;
+      margin-top: 2px;
+    }
+    .radio-group label {
+      cursor: pointer;
+    }
+
+    .slider-container {
+      width: 100%;
+      margin: 0 auto;
+    }
+    .height-num {
+      font-size: 12px;
+      text-align: right;
+      margin-bottom: 2px;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: #555;
+      background: #c0c0c0;
+      height: 6px;
+    }
+
+    .action-area {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding-bottom: 10px;
+    }
+    .btn-listen {
+      width: 100%;
+      padding: 8px;
+    }
+    .btn-generate {
+      width: 100%;
+      font-size: 14px;
+      font-weight: bold;
+      padding: 10px;
+    }
+
+    /* --- 設定画面のスタイル --- */
+    .settings-title {
+      font-size: 16px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .settings-section {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .shortcut-box {
+      border: 1px solid #7f7f7f;
+      padding: 10px;
+      margin: 15px auto;
+      width: 90%;
+      text-align: left;
+      font-size: 11px;
+    }
+
+    /* --- クラシック風カスタムドロップダウン --- */
+    .custom-select-container {
+      position: relative;
+      width: 160px;
+      margin: 6px auto 0 auto;
+    }
+    .select-box {
+      background-color: #ffffff;
+      border: 1px solid #7f7f7f;
+      padding: 4px 8px;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .select-box:active {
+      background-color: #f0f0f0;
+    }
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      max-height: 200px;
+      overflow-y: auto;
+      background-color: #ffffff;
+      border: 1px solid #7f7f7f;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+      z-index: 10;
+      text-align: left;
+    }
+    .dropdown-menu.open {
+      display: block;
+    }
+    .dropdown-item {
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px dotted #e0e0e0;
+    }
+    .dropdown-item:last-child {
+      border-bottom: none;
+    }
+    .dropdown-item:hover {
+      background-color: #000080;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="tkinter-window">
+
+    <!-- 【画面1】メイン画面 -->
+    <div id="screen-main" class="screen active">
+      <div class="top-header">
+        <h1 class="app-title" id="lbl-title">Utaun</h1>
+        <button class="btn gear-btn" id="to-settings">⚙</button>
+      </div>
+
+      <div class="form-group">
+        <span class="label" id="lbl-name">Name</span>
+        <div class="input-wrap main-input">
+          <input type="text" id="input-name" value="NewVoice" style="width:100%;">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <span class="label" id="lbl-author">Author</span>
+        <div class="input-wrap main-input">
+          <input type="text" id="input-author" value="User" style="width:100%;">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <span class="label" id="lbl-readme">Readme</span>
+        <div class="input-wrap main-input">
+          <textarea class="main-textarea" id="input-readme">Generated via Web-BETA</textarea>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <span class="label" id="lbl-encoding">Encoding</span>
+        <div class="radio-group">
+          <label><input type="radio" name="encoding" value="shift_jis" checked> Shift-JIS</label>
+          <label><input type="radio" name="encoding" value="utf-8"> UTF-8</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <span class="label">ICON</span>
+        <button class="btn" style="width:100%;" id="btn-icon">SELECT IMAGE</button>
+      </div>
+
+      <div class="form-group">
+        <span class="label" id="lbl-height-title">Height</span>
+        <div class="slider-container">
+          <div class="height-num" id="height-val">475</div>
+          <input type="range" id="slider-height" min="100" max="600" value="475">
+        </div>
+      </div>
+
+      <div class="action-area">
+        <button class="btn btn-listen" id="btn-listen">♪ Listen</button>
+        <button class="btn btn-generate" id="btn-gen">GENERATE!</button>
+      </div>
+    </div>
+
+    <!-- 【画面2】設定画面 -->
+    <div id="screen-settings" class="screen">
+      <div class="settings-title" id="stg-title">Settings</div>
+
+      <div class="settings-section">
+        <span class="label" id="stg-lang-lbl" style="font-weight:bold;">Language</span>
+        <div class="custom-select-container">
+          <div class="select-box" id="select-box">
+            <span id="selected-lang-text">🇺🇸 EN-US</span>
+            <span style="font-size:9px;">▼</span>
+          </div>
+          <div class="dropdown-menu" id="dropdown-menu">
+            <div class="dropdown-item" data-value="ja">🇯🇵 JA</div>
+            <div class="dropdown-item" data-value="en">🇬🇧 EN</div>
+            <div class="dropdown-item" data-value="en-us">🇺🇸 EN-US</div>
+            <div class="dropdown-item" data-value="ko">🇰🇷 KO</div>
+            <div class="dropdown-item" data-value="zh-cn">🇨🇳 ZH-CN</div>
+            <div class="dropdown-item" data-value="zh-tw">🇹🇼 ZH-TW</div>
+            <div class="dropdown-item" data-value="zh-hk">🇭🇰 ZH-HK</div>
+            <div class="dropdown-item" data-value="ru">🇷🇺 RU</div>
+            <div class="dropdown-item" data-value="pt">🇵🇹 PT</div>
+            <div class="dropdown-item" data-value="es">🇪🇸 ES</div>
+            <div class="dropdown-item" data-value="fr">🇫🇷 FR</div>
+            <div class="dropdown-item" data-value="it">🇮🇹 IT</div>
+            <div class="dropdown-item" data-value="de">🇩🇪 DE</div>
+            <div class="dropdown-item" data-value="pl">🇵🇱 PL</div>
+            <div class="dropdown-item" data-value="tr">🇹🇷 TR</div>
+            <div class="dropdown-item" data-value="vi">🇻🇳 VI</div>
+            <div class="dropdown-item" data-value="fil">🇵🇭 FIL</div>
+            <div class="dropdown-item" data-value="th">🇹🇭 TH</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <span class="label" id="stg-theme-lbl" style="font-weight:bold;">Theme</span>
+        <div class="radio-group" style="justify-content:center; gap:15px; margin:6px 0;">
+          <label><input type="radio" name="theme" value="light" checked> <span id="stg-theme-light">Light</span></label>
+          <label><input type="radio" name="theme" value="dark"> <span id="stg-theme-dark">Dark</span></label>
+        </div>
+        <div style="margin-top:8px;"><label style="font-size:12px;"><input type="checkbox" id="chk-shortcuts" checked> <span id="stg-shortcuts-lbl">Enable Shortcuts</span></label></div>
+      </div>
+
+      <div class="shortcut-box">
+        <div style="text-align:center; font-weight:bold; margin-bottom:4px;" id="stg-shortcut-title">[ Shortcut Keys ]</div>
+        <div style="text-align:center; font-size:10px; color:#555; margin-bottom:6px;" id="stg-shortcut-note">(※PC only)</div>
+        <div style="border-bottom:1px dashed #7f7f7f; margin-bottom:6px;"></div>
+        Ctrl + Enter | Generate<br>
+        Ctrl + P &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| Listen<br>
+        Ctrl + A &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| Select All<br>
+        Ctrl + C / V | Copy / Paste<br>
+        Enter &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| Save & Close
+      </div>
+
+      <div class="action-area" style="margin-top:auto;">
+        <button class="btn" id="to-main" style="width:120px; font-weight:bold;">Apply</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // スライダー連動
+    const slider = document.getElementById('slider-height');
+    const heightVal = document.getElementById('height-val');
+    slider.addEventListener('input', (e) => {
+      heightVal.textContent = e.target.value;
+    });
+
+    // 画面切り替え
+    const screenMain = document.getElementById('screen-main');
+    const screenSettings = document.getElementById('screen-settings');
+
+    document.getElementById('to-settings').addEventListener('click', () => {
+      screenMain.classList.remove('active');
+      screenSettings.classList.add('active');
+    });
+
+    document.getElementById('to-main').addEventListener('click', () => {
+      screenSettings.classList.remove('active');
+      screenMain.classList.add('active');
+    });
+
+    // --- iPhone対応：音声プレビュー (♪ Listen) の実装 ---
+    let audioCtx = null;
+
+    document.getElementById('btn-listen').addEventListener('click', async () => {
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          await audioCtx.resume();
+        }
+
+        const height = parseInt(slider.value, 10) || 475;
+        playVowelSound(audioCtx, 'あ', height);
+      } catch (err) {
+        alert('音声再生エラー: ' + err.message);
+      }
+    });
+
+    function playVowelSound(ctx, vChar, height) {
+      const sr = ctx.sampleRate;
+      const duration = 0.8;
+      const numSamples = Math.floor(sr * duration);
+      const buffer = ctx.createBuffer(1, numSamples, sr);
+      const data = buffer.getChannelData(0);
+
+      const base = [800, 1200];
+      const baseHeight = 200.0;
+      const diff = Math.max(0, height - baseHeight);
+      const shiftRate = 0.25;
+      const targets = base.map(val => val + (diff * shiftRate));
+      const maxHarmonic = Math.floor(sr / 2 / height);
+
+      for (let i = 0; i < numSamples; i++) {
+        let t = i / sr;
+        let signal = 0;
+        for (let n = 1; n < Math.min(maxHarmonic, 30); n++) {
+          let freq = height * n;
+          let amp = 0;
+          targets.forEach(c => {
+            amp += Math.exp(-Math.pow(freq - c, 2) / 50000);
+          });
+          signal += (amp / Math.pow(n, 1.2)) * Math.sin(2 * Math.PI * freq * t);
+        }
+        let env = 1.0;
+        if (i > numSamples - sr * 0.2) {
+          env = (numSamples - i) / (sr * 0.2);
+        }
+        data[i] = signal * 0.15 * env;
+      }
+
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(ctx.destination);
+      source.start();
+    }
+
+    // --- カスタムドロップダウンの制御 ---
+    const selectBox = document.getElementById('select-box');
+    const dropdownMenu = document.getElementById('dropdown-menu');
+    const selectedLangText = document.getElementById('selected-lang-text');
+
+    selectBox.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdownMenu.classList.toggle('open');
+    });
+
+    document.addEventListener('click', () => {
+      dropdownMenu.classList.remove('open');
+    });
+
+    document.querySelectorAll('.dropdown-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        selectedLangText.textContent = e.target.textContent.trim();
+        dropdownMenu.classList.remove('open');
+        switchLanguage(e.target.getAttribute('data-value'));
+      });
+    });
+
+    // --- 翻訳データ & 切り替え ---
+    const translations = {
+      ja: {
+        lblName: "名前", lblAuthor: "作者", lblReadme: "説明", lblEncoding: "文字コード",
+        btnIcon: "画像を選択", lblHeightTitle: "高さ", btnListen: "♪ 試聴", btnGen: "音源を作る！",
+        stgTitle: "設定", stgLangLbl: "言語", stgThemeLbl: "テーマ", stgThemeLight: "ライト",
+        stgThemeDark: "ダーク", stgShortcutsLbl: "ショートカットを有効にする",
+        stgShortcutTitle: "[ ショートカットキー ]", stgShortcutNote: "(※パソコン限定)", toMain: "適用して閉じる"
+      },
+      en: {
+        lblName: "Name", lblAuthor: "Author", lblReadme: "Readme", lblEncoding: "Encoding",
+        btnIcon: "SELECT IMAGE", lblHeightTitle: "Height", btnListen: "♪ Listen", btnGen: "GENERATE!",
+        stgTitle: "Settings", stgLangLbl: "Language", stgThemeLbl: "Theme", stgThemeLight: "Light",
+        stgThemeDark: "Dark", stgShortcutsLbl: "Enable Shortcuts",
+        stgShortcutTitle: "[ Shortcut Keys ]", stgShortcutNote: "(※PC only)", toMain: "Apply"
+      },
+      'en-us': {
+        lblName: "Name", lblAuthor: "Author", lblReadme: "Readme", lblEncoding: "Encoding",
+        btnIcon: "SELECT IMAGE", lblHeightTitle: "Height", btnListen: "♪ Listen", btnGen: "GENERATE!",
+        stgTitle: "Settings", stgLangLbl: "Language", stgThemeLbl: "Theme", stgThemeLight: "Light",
+        stgThemeDark: "Dark", stgShortcutsLbl: "Enable Shortcuts",
+        stgShortcutTitle: "[ Shortcut Keys ]", stgShortcutNote: "(※PC only)", toMain: "Apply"
+      },
+      ko: {
+        lblName: "이름", lblAuthor: "작성자", lblReadme: "설명", lblEncoding: "인코딩",
+        btnIcon: "이미지 선택", lblHeightTitle: "높이", btnListen: "♪ 들어보기", btnGen: "음원 생성!",
+        stgTitle: "설정", stgLangLbl: "언어", stgThemeLbl: "테마", stgThemeLight: "라이트",
+        stgThemeDark: "다크", stgShortcutsLbl: "단축키 활성화",
+        stgShortcutTitle: "[ 단축키 ]", stgShortcutNote: "(※PC 전용)", toMain: "적용"
+      },
+      'zh-cn': {
+        lblName: "姓名", lblAuthor: "作者", lblReadme: "说明", lblEncoding: "编码",
+        btnIcon: "选择图像", lblHeightTitle: "高度", btnListen: "♪ 试听", btnGen: "生成音源！",
+        stgTitle: "设置", stgLangLbl: "语言", stgThemeLbl: "主题", stgThemeLight: "浅色",
+        stgThemeDark: "深色", stgShortcutsLbl: "启用快捷键",
+        stgShortcutTitle: "[ 快捷键 ]", stgShortcutNote: "(※仅限电脑)", toMain: "应用"
+      },
+      'zh-tw': {
+        lblName: "姓名", lblAuthor: "作者", lblReadme: "說明", lblEncoding: "編碼",
+        btnIcon: "選擇圖片", lblHeightTitle: "高度", btnListen: "♪ 試聽", btnGen: "產生音源！",
+        stgTitle: "設定", stgLangLbl: "語言", stgThemeLbl: "主題", stgThemeLight: "淺色",
+        stgThemeDark: "深色", stgShortcutsLbl: "啟用快捷鍵",
+        stgShortcutTitle: "[ 快捷鍵 ]", stgShortcutNote: "(※僅限電腦)", toMain: "套用"
+      },
+      'zh-hk': {
+        lblName: "姓名", lblAuthor: "作者", lblReadme: "說明", lblEncoding: "編碼",
+        btnIcon: "選擇圖片", lblHeightTitle: "高度", btnListen: "♪ 試聽", btnGen: "產生音源！",
+        stgTitle: "設定", stgLangLbl: "語言", stgThemeLbl: "主題", stgThemeLight: "淺色",
+        stgThemeDark: "深色", stgShortcutsLbl: "啟用快捷鍵",
+        stgShortcutTitle: "[ 快捷鍵 ]", stgShortcutNote: "(※僅限電腦)", toMain: "套用"
+      },
+      ru: {
+        lblName: "Имя", lblAuthor: "Автор", lblReadme: "Описание", lblEncoding: "Кодировка",
+        btnIcon: "ВЫБРАТЬ ИЗОБРАЖЕНИЕ", lblHeightTitle: "Высота", btnListen: "♪ Прослушать", btnGen: "СОЗДАТЬ!",
+        stgTitle: "Настройки", stgLangLbl: "Язык", stgThemeLbl: "Тема", stgThemeLight: "Светлая",
+        stgThemeDark: "Темная", stgShortcutsLbl: "Включить горячие клавиши",
+        stgShortcutTitle: "[ Горячие клавиши ]", stgShortcutNote: "(※Только ПК)", toMain: "Применить"
+      },
+      pt: {
+        lblName: "Nome", lblAuthor: "Autor", lblReadme: "Readme", lblEncoding: "Codificação",
+        btnIcon: "SELECIONAR IMAGEM", lblHeightTitle: "Altura", btnListen: "♪ Ouvir", btnGen: "GERAR!",
+        stgTitle: "Configurações", stgLangLbl: "Idioma", stgThemeLbl: "Tema", stgThemeLight: "Claro",
+        stgThemeDark: "Escuro", stgShortcutsLbl: "Ativar Atalhos",
+        stgShortcutTitle: "[ Teclas de Atalho ]", stgShortcutNote: "(※Apenas PC)", toMain: "Aplicar"
+      },
+      es: {
+        lblName: "Nombre", lblAuthor: "Autor", lblReadme: "Readme", lblEncoding: "Codificación",
+        btnIcon: "SELECCIONAR IMAGEN", lblHeightTitle: "Altura", btnListen: "♪ Escuchar", btnGen: "¡GENERAR!",
+        stgTitle: "Configuración", stgLangLbl: "Idioma", stgThemeLbl: "Tema", stgThemeLight: "Claro",
+        stgThemeDark: "Oscuro", stgShortcutsLbl: "Habilitar atajos",
+        stgShortcutTitle: "[ Teclas de atajo ]", stgShortcutNote: "(※Solo PC)", toMain: "Aplicar"
+      },
+      fr: {
+        lblName: "Nom", lblAuthor: "Auteur", lblReadme: "Lisez-moi", lblEncoding: "Encodage",
+        btnIcon: "CHOISIR UNE IMAGE", lblHeightTitle: "Hauteur", btnListen: "♪ Écouter", btnGen: "GÉNÉRER !",
+        stgTitle: "Paramètres", stgLangLbl: "Langue", stgThemeLbl: "Thème", stgThemeLight: "Clair",
+        stgThemeDark: "Sombre", stgShortcutsLbl: "Activer les raccourcis",
+        stgShortcutTitle: "[ Raccourcis clavier ]", stgShortcutNote: "(※PC uniquement)", toMain: "Appliquer"
+      },
+      it: {
+        lblName: "Nome", lblAuthor: "Autore", lblReadme: "Leggimi", lblEncoding: "Codifica",
+        btnIcon: "SELEZIONA IMMAGINE", lblHeightTitle: "Altezza", btnListen: "♪ Ascolta", btnGen: "GENERA!",
+        stgTitle: "Impostazioni", stgLangLbl: "Lingua", stgThemeLbl: "Tema", stgThemeLight: "Chiaro",
+        stgThemeDark: "Scuro", stgShortcutsLbl: "Abilita scorciatoie",
+        stgShortcutTitle: "[ Scorciatoie ]", stgShortcutNote: "(※Solo PC)", toMain: "Applica"
+      },
+      de: {
+        lblName: "Name", lblAuthor: "Autor", lblReadme: "Readme", lblEncoding: "Kodierung",
+        btnIcon: "BILD AUSWÄHLEN", lblHeightTitle: "Höhe", btnListen: "♪ Anhören", btnGen: "GENERIEREN!",
+        stgTitle: "Einstellungen", stgLangLbl: "Sprache", stgThemeLbl: "Thema", stgThemeLight: "Hell",
+        stgThemeDark: "Dunkel", stgShortcutsLbl: "Tastenkombinationen aktivieren",
+        stgShortcutTitle: "[ Tastenkombinationen ]", stgShortcutNote: "(※Nur PC)", toMain: "Anwenden"
+      },
+      pl: {
+        lblName: "Nazwa", lblAuthor: "Autor", lblReadme: "Readme", lblEncoding: "Kodowanie",
+        btnIcon: "WYBIERZ OBRAZ", lblHeightTitle: "Wysokość", btnListen: "♪ Posłuchaj", btnGen: "GENERUJ!",
+        stgTitle: "Ustawienia", stgLangLbl: "Język", stgThemeLbl: "Motyw", stgThemeLight: "Jasny",
+        stgThemeDark: "Ciemny", stgShortcutsLbl: "Włącz skróty",
+        stgShortcutTitle: "[ Skróty klawiszowe ]", stgShortcutNote: "(※Tylko PC)", toMain: "Zastosuj"
+      },
+      tr: {
+        lblName: "Ad", lblAuthor: "Yazar", lblReadme: "Benioku", lblEncoding: "Kodlama",
+        btnIcon: "GÖRSEL SEÇ", lblHeightTitle: "Yükseklik", btnListen: "♪ Dinle", btnGen: "OLUŞTUR!",
+        stgTitle: "Ayarlar", stgLangLbl: "Dil", stgThemeLbl: "Tema", stgThemeLight: "Açık",
+        stgThemeDark: "Koyu", stgShortcutsLbl: "Kısayolları Etkinleştir",
+        stgShortcutTitle: "[ Kısayol Tuşları ]", stgShortcutNote: "(※Yalnızca PC)", toMain: "Uygula"
+      },
+      vi: {
+        lblName: "Tên", lblAuthor: "Tác giả", lblReadme: "Đọc tôi", lblEncoding: "Mã hóa",
+        btnIcon: "CHỌN ẢNH", lblHeightTitle: "Chiều cao", btnListen: "♪ Nghe", btnGen: "TẠO!",
+        stgTitle: "Cài đặt", stgLangLbl: "Ngôn ngữ", stgThemeLbl: "Giao diện", stgThemeLight: "Sáng",
+        stgThemeDark: "Tối", stgShortcutsLbl: "Bật phím tắt",
+        stgShortcutTitle: "[ Phím tắt ]", stgShortcutNote: "(※Chỉ máy tính)", toMain: "Áp dụng"
+      },
+      fil: {
+        lblName: "Pangalan", lblAuthor: "May-akda", lblReadme: "Basahin", lblEncoding: "Encoding",
+        btnIcon: "PUMILI NG LARAWAN", lblHeightTitle: "Taas", btnListen: "♪ Makinig", btnGen: "GUMAWA!",
+        stgTitle: "Mga Setting", stgLangLbl: "Wika", stgThemeLbl: "Tema", stgThemeLight: "Maliwanag",
+        stgThemeDark: "Madilim", stgShortcutsLbl: "Paganahin ang Shortcuts",
+        stgShortcutTitle: "[ Mga Shortcut ]", stgShortcutNote: "(※PC lang)", toMain: "Ilapat"
+      },
+      th: {
+        lblName: "ชื่อ", lblAuthor: "ผู้แต่ง", lblReadme: "อ่านฉัน", lblEncoding: "การเข้ารหัส",
+        btnIcon: "เลือกรูปภาพ", lblHeightTitle: "ความสูง", btnListen: "♪ ฟัง", btnGen: "สร้าง!",
+        stgTitle: "ตั้งค่า", stgLangLbl: "ภาษา", stgThemeLbl: "ธีม", stgThemeLight: "สว่าง",
+        stgThemeDark: "มืด", stgShortcutsLbl: "เปิดใช้งานทางลัด",
+        stgShortcutTitle: "[ ปุ่มลัด ]", stgShortcutNote: "(※เฉพาะ PC เท่านั้น)", toMain: "นำไปใช้"
+      }
+    };
+
+    function switchLanguage(lang) {
+      const t = translations[lang] || translations['en'];
+
+      document.getElementById('lbl-name').textContent = t.lblName;
+      document.getElementById('lbl-author').textContent = t.lblAuthor;
+      document.getElementById('lbl-readme').textContent = t.lblReadme;
+      document.getElementById('lbl-encoding').textContent = t.lblEncoding;
+      document.getElementById('btn-icon').textContent = t.btnIcon;
+      document.getElementById('lbl-height-title').textContent = t.lblHeightTitle;
+      document.getElementById('btn-listen').textContent = t.btnListen;
+      document.getElementById('btn-gen').textContent = t.btnGen;
+
+      document.getElementById('stg-title').textContent = t.stgTitle;
+      document.getElementById('stg-lang-lbl').textContent = t.stgLangLbl;
+      document.getElementById('stg-theme-lbl').textContent = t.stgThemeLbl;
+      document.getElementById('stg-theme-light').textContent = t.stgThemeLight;
+      document.getElementById('stg-theme-dark').textContent = t.stgThemeDark;
+      document.getElementById('stg-shortcuts-lbl').textContent = t.stgShortcutsLbl;
+      document.getElementById('stg-shortcut-title').textContent = t.stgShortcutTitle;
+      document.getElementById('stg-shortcut-note').textContent = t.stgShortcutNote;
+      document.getElementById('to-main').textContent = t.toMain;
+    }
+  </script>
+</body>
+</html>
