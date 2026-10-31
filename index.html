@@ -12,7 +12,6 @@
       user-select: none;
       -webkit-user-select: none;
     }
-
     html, body {
       width: 100%;
       height: 100%;
@@ -20,15 +19,12 @@
       padding: 0;
       background-color: #f0f0f0;
     }
-
     body {
       display: flex;
       justify-content: center;
       align-items: center;
       padding: 10px;
     }
-
-    /* ウィンドウ枠 */
     .tkinter-window {
       width: 100%;
       height: 100%;
@@ -42,18 +38,9 @@
       overflow-y: auto;
       position: relative;
     }
+    .screen { display: none; flex-direction: column; height: 100%; }
+    .screen.active { display: flex; }
 
-    /* 画面切り替え用 */
-    .screen {
-      display: none;
-      flex-direction: column;
-      height: 100%;
-    }
-    .screen.active {
-      display: flex;
-    }
-
-    /* 共通ボタン・入力パーツ */
     .btn {
       background-color: #f0f0f0;
       border: 1px solid #7f7f7f;
@@ -62,13 +49,11 @@
       padding: 8px 10px;
       outline: none;
       text-align: center;
+      touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
     }
-    .btn:active {
-      background-color: #d0d0d0;
-    }
+    .btn:active { background-color: #d0d0d0; }
 
-    /* 音声有効化ボタンのスタイル（目立たせる） */
     .btn-sound-toggle {
       background-color: #ffe6e6;
       border: 1px solid #c070c6;
@@ -90,49 +75,35 @@
     input[type="text"] {
       border: none;
       outline: none;
-      font-size: 13px;
+      font-size: 16px; /* iOSの自動ズーム防止 */
       padding: 4px 6px;
       background: transparent;
+      -webkit-user-select: text;
+      user-select: text;
     }
 
-    /* --- メイン画面のスタイル --- */
     .top-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 15px;
     }
-    .app-title {
-      font-size: 28px;
-      font-weight: bold;
-      margin: 0;
-    }
-    .gear-btn {
-      font-size: 16px;
-      padding: 4px 8px;
-    }
+    .app-title { font-size: 28px; font-weight: bold; margin: 0; }
+    .gear-btn { font-size: 16px; padding: 4px 8px; }
 
-    .form-group {
-      margin-bottom: 12px;
-      text-align: center;
-      width: 100%;
-    }
-    .label {
-      font-size: 13px;
-      margin-bottom: 3px;
-      display: block;
-    }
-    .main-input {
-      width: 100%;
-    }
+    .form-group { margin-bottom: 12px; text-align: center; width: 100%; }
+    .label { font-size: 13px; margin-bottom: 3px; display: block; }
+    .main-input { width: 100%; }
     .main-textarea {
       width: 100%;
       height: 80px;
       resize: none;
       border: none;
       outline: none;
-      font-size: 13px;
+      font-size: 16px;
       padding: 4px;
+      -webkit-user-select: text;
+      user-select: text;
     }
 
     .radio-group {
@@ -142,19 +113,10 @@
       font-size: 12px;
       margin-top: 2px;
     }
-    .radio-group label {
-      cursor: pointer;
-    }
+    .radio-group label { cursor: pointer; }
 
-    .slider-container {
-      width: 100%;
-      margin: 0 auto;
-    }
-    .height-num {
-      font-size: 12px;
-      text-align: right;
-      margin-bottom: 2px;
-    }
+    .slider-container { width: 100%; margin: 0 auto; }
+    .height-num { font-size: 12px; text-align: right; margin-bottom: 2px; }
     input[type="range"] {
       width: 100%;
       accent-color: #555;
@@ -171,28 +133,11 @@
       width: 100%;
       padding-bottom: 10px;
     }
-    .btn-listen {
-      width: 100%;
-      padding: 10px;
-    }
-    .btn-generate {
-      width: 100%;
-      font-size: 14px;
-      font-weight: bold;
-      padding: 10px;
-    }
+    .btn-listen { width: 100%; padding: 10px; }
+    .btn-generate { width: 100%; font-size: 14px; font-weight: bold; padding: 10px; }
 
-    /* --- 設定画面のスタイル --- */
-    .settings-title {
-      font-size: 16px;
-      font-weight: bold;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .settings-section {
-      text-align: center;
-      margin-bottom: 20px;
-    }
+    .settings-title { font-size: 16px; font-weight: bold; text-align: center; margin-bottom: 20px; }
+    .settings-section { text-align: center; margin-bottom: 20px; }
     .shortcut-box {
       border: 1px solid #7f7f7f;
       padding: 10px;
@@ -202,12 +147,7 @@
       font-size: 11px;
     }
 
-    /* --- クラシック風カスタムドロップダウン --- */
-    .custom-select-container {
-      position: relative;
-      width: 160px;
-      margin: 6px auto 0 auto;
-    }
+    .custom-select-container { position: relative; width: 160px; margin: 6px auto 0 auto; }
     .select-box {
       background-color: #ffffff;
       border: 1px solid #7f7f7f;
@@ -218,9 +158,7 @@
       justify-content: space-between;
       align-items: center;
     }
-    .select-box:active {
-      background-color: #f0f0f0;
-    }
+    .select-box:active { background-color: #f0f0f0; }
     .dropdown-menu {
       display: none;
       position: absolute;
@@ -235,9 +173,7 @@
       z-index: 10;
       text-align: left;
     }
-    .dropdown-menu.open {
-      display: block;
-    }
+    .dropdown-menu.open { display: block; }
     .dropdown-item {
       padding: 6px 10px;
       font-size: 12px;
@@ -247,13 +183,8 @@
       gap: 8px;
       border-bottom: 1px dotted #e0e0e0;
     }
-    .dropdown-item:last-child {
-      border-bottom: none;
-    }
-    .dropdown-item:hover {
-      background-color: #000080;
-      color: #ffffff;
-    }
+    .dropdown-item:last-child { border-bottom: none; }
+    .dropdown-item:hover { background-color: #000080; color: #ffffff; }
   </style>
 </head>
 <body>
@@ -267,7 +198,6 @@
         <button class="btn gear-btn" id="to-settings">⚙</button>
       </div>
 
-      <!-- 音声有効化 / ミュート切り替えボタン -->
       <div class="form-group">
         <button class="btn btn-sound-toggle" id="btn-sound-toggle" style="width:100%;">🔇 音声OFF (タップして有効化)</button>
       </div>
@@ -315,6 +245,9 @@
       </div>
 
       <div class="action-area">
+        <div id="silent-note" style="display:none; font-size:11px; color:#555; text-align:center; line-height:1.5;">
+          If you hear no sound, turn off Silent Mode (the switch on the left side of your iPhone).
+        </div>
         <button class="btn btn-listen" id="btn-listen">♪ Listen</button>
         <button class="btn btn-generate" id="btn-gen">GENERATE!</button>
       </div>
@@ -397,85 +330,114 @@
       screenMain.classList.remove('active');
       screenSettings.classList.add('active');
     });
-
     document.getElementById('to-main').addEventListener('click', () => {
       screenSettings.classList.remove('active');
       screenMain.classList.add('active');
     });
 
-    // --- 【マスターゲイン＆ミュート制御方式】 ---
+    // =====================================================
+    //  音声まわり（iPhone / Android / PC 共通で鳴る構成）
+    //  ポイント:
+    //   - touchstart は使わず click だけ
+    //   - click の中で最初に resume() する
+    //   - iOSの消音スイッチ対策に audioSession を playback にする
+    // =====================================================
     let audioCtx = null;
     let masterGain = null;
     let isSoundEnabled = false;
 
-    // 音声エンジンの初期化（デフォルトでボリューム0のゲインノードを作成）
     function initAudioContext() {
       if (!audioCtx) {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         audioCtx = new AudioContextClass();
-        
-        // マスターボリュームをコントロールするGainNodeを作成
         masterGain = audioCtx.createGain();
-        masterGain.gain.value = 0.0; // 最初はミュート（0）
+        masterGain.gain.value = 0.0;
         masterGain.connect(audioCtx.destination);
       }
     }
 
-    // ミュートボタン（音声有効化ボタン）の制御
-    const soundToggleBtn = document.getElementById('btn-sound-toggle');
-    
-    soundToggleBtn.addEventListener('touchstart', toggleSound, { passive: false });
-    soundToggleBtn.addEventListener('click', toggleSound);
+    // 無音のWAVを作って <audio> で再生し続ける（iOSの消音スイッチ対策）
+    // <audio> が再生中だと、iOSは「メディア再生」と判断して消音モードでも鳴らす
+    let silentEl = null;
+    function makeSilentWavUrl() {
+      const sr = 8000, n = sr; // 1秒
+      const buf = new ArrayBuffer(44 + n * 2);
+      const v = new DataView(buf);
+      const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+      w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE');
+      w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+      v.setUint16(22, 1, true); v.setUint32(24, sr, true);
+      v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+      w(36, 'data'); v.setUint32(40, n * 2, true);
+      return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+    }
+    function startSilentAudio() {
+      try {
+        if (!silentEl) {
+          silentEl = document.createElement('audio');
+          silentEl.src = makeSilentWavUrl();
+          silentEl.loop = true;
+          silentEl.setAttribute('playsinline', '');
+          silentEl.setAttribute('webkit-playsinline', '');
+          document.body.appendChild(silentEl);
+        }
+        if (silentEl.paused) silentEl.play().catch(() => {});
+      } catch (e) {}
+    }
 
-    function toggleSound(e) {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
+    // クリック（ユーザー操作）の中で呼んで、音声を解除する
+    async function unlockAudio() {
+      startSilentAudio();
+      // iOSの消音スイッチがONでも鳴らす
+      try {
+        if (navigator.audioSession) navigator.audioSession.type = 'playback';
+      } catch (e) {}
 
       initAudioContext();
 
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
+      if (audioCtx.state !== 'running') {
+        try { await audioCtx.resume(); } catch (e) {}
       }
 
-      isSoundEnabled = !isSoundEnabled;
+      // 無音を1回鳴らして完全に解除（古いiOS向けの保険）
+      try {
+        const b = audioCtx.createBuffer(1, 1, 22050);
+        const s = audioCtx.createBufferSource();
+        s.buffer = b;
+        s.connect(audioCtx.destination);
+        s.start(0);
+      } catch (e) {}
+    }
 
-      if (isSoundEnabled) {
-        masterGain.gain.setValueAtTime(1.0, audioCtx.currentTime); // 音声ON
+    function setSoundUI(on) {
+      isSoundEnabled = on;
+      if (on) {
+        masterGain.gain.setValueAtTime(1.0, audioCtx.currentTime);
         soundToggleBtn.textContent = '🔊 音声ON (タップしてミュート)';
         soundToggleBtn.classList.add('active');
       } else {
-        masterGain.gain.setValueAtTime(0.0, audioCtx.currentTime); // ミュート
+        masterGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
         soundToggleBtn.textContent = '🔇 音声OFF (タップして有効化)';
         soundToggleBtn.classList.remove('active');
       }
     }
 
-    // 「♪ Listen」ボタン処理
+    const soundToggleBtn = document.getElementById('btn-sound-toggle');
+    soundToggleBtn.addEventListener('click', toggleSound);
+
+    async function toggleSound() {
+      await unlockAudio();
+      setSoundUI(!isSoundEnabled);
+    }
+
     const listenBtn = document.getElementById('btn-listen');
-    
-    listenBtn.addEventListener('touchstart', handleListen, { passive: false });
     listenBtn.addEventListener('click', handleListen);
 
-    function handleListen(e) {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
+    async function handleListen() {
+      await unlockAudio();
 
-      initAudioContext();
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-
-      // まだ音声が有効になっていなければ自動で有効化してあげる
-      if (!isSoundEnabled) {
-        isSoundEnabled = true;
-        masterGain.gain.setValueAtTime(1.0, audioCtx.currentTime);
-        soundToggleBtn.textContent = '🔊 音声ON (タップしてミュート)';
-        soundToggleBtn.classList.add('active');
-      }
+      // ミュート中なら自動でONにする
+      if (!isSoundEnabled) setSoundUI(true);
 
       try {
         const height = parseInt(slider.value, 10) || 475;
@@ -499,11 +461,12 @@
       const targets = base.map(val => val + (diff * shiftRate));
       const maxHarmonic = Math.floor(sr / 2 / height);
 
+      let peak = 0;
       for (let i = 0; i < numSamples; i++) {
-        let t = i / sr;
+        const t = i / sr;
         let signal = 0;
         for (let n = 1; n < Math.min(maxHarmonic, 30); n++) {
-          let freq = height * n;
+          const freq = height * n;
           let amp = 0;
           targets.forEach(c => {
             amp += Math.exp(-Math.pow(freq - c, 2) / 50000);
@@ -514,12 +477,16 @@
         if (i > numSamples - sr * 0.2) {
           env = (numSamples - i) / (sr * 0.2);
         }
-        data[i] = signal * 0.15 * env;
+        data[i] = signal * env;
+        peak = Math.max(peak, Math.abs(data[i]));
       }
+
+      // 音量を自動で正規化（小さすぎて聞こえない問題の対策）
+      const norm = peak > 0 ? 0.6 / peak : 1;
+      for (let i = 0; i < numSamples; i++) data[i] *= norm;
 
       const source = ctx.createBufferSource();
       source.buffer = buffer;
-      // 出力先を直接 destination ではなく、マスターボリューム（GainNode）経由にする
       source.connect(destinationNode);
       source.start(ctx.currentTime);
     }
@@ -533,11 +500,9 @@
       e.stopPropagation();
       dropdownMenu.classList.toggle('open');
     });
-
     document.addEventListener('click', () => {
       dropdownMenu.classList.remove('open');
     });
-
     document.querySelectorAll('.dropdown-item').forEach(item => {
       item.addEventListener('click', (e) => {
         selectedLangText.textContent = e.target.textContent.trim();
@@ -546,7 +511,7 @@
       });
     });
 
-    // --- 多言語ローカライズ用データ & 切替 ---
+    // --- 多言語ローカライズ ---
     const translations = {
       ja: {
         lblName: "名前", lblAuthor: "作者", lblReadme: "説明", lblEncoding: "文字コード",
@@ -571,7 +536,7 @@
       },
       ko: {
         lblName: "이름", lblAuthor: "작성자", lblReadme: "설명", lblEncoding: "인코딩",
-        btnIcon: "이미지 선택", lblHeightTitle: "높이", lblListen: "♪ 들어보기", btnGen: "음원 생성!",
+        btnIcon: "이미지 선택", lblHeightTitle: "높이", btnListen: "♪ 들어보기", btnGen: "음원 생성!",
         stgTitle: "설정", stgLangLbl: "언어", stgThemeLbl: "테마", stgThemeLight: "라이트",
         stgThemeDark: "다크", stgShortcutsLbl: "단축키 활성화",
         stgShortcutTitle: "[ 단축키 ]", stgShortcutNote: "(※PC 전용)", toMain: "적용"
@@ -613,7 +578,7 @@
       },
       es: {
         lblName: "Nombre", lblAuthor: "Autor", lblReadme: "Readme", lblEncoding: "Codificación",
-        btnIcon: "SELECIONAR IMAGEM", lblHeightTitle: "Altura", btnListen: "♪ Escuchar", btnGen: "¡GENERAR!",
+        btnIcon: "SELECCIONAR IMAGEN", lblHeightTitle: "Altura", btnListen: "♪ Escuchar", btnGen: "¡GENERAR!",
         stgTitle: "Configuración", stgLangLbl: "Idioma", stgThemeLbl: "Tema", stgThemeLight: "Claro",
         stgThemeDark: "Oscuro", stgShortcutsLbl: "Habilitar atajos",
         stgShortcutTitle: "[ Teclas de atajo ]", stgShortcutNote: "(※Solo PC)", toMain: "Aplicar"
@@ -634,7 +599,7 @@
       },
       de: {
         lblName: "Name", lblAuthor: "Autor", lblReadme: "Readme", lblEncoding: "Kodierung",
-        vIcon: "BILD AUSWÄHLEN", lblHeightTitle: "Höhe", btnListen: "♪ Anhören", btnGen: "GENERIEREN!",
+        btnIcon: "BILD AUSWÄHLEN", lblHeightTitle: "Höhe", btnListen: "♪ Anhören", btnGen: "GENERIEREN!",
         stgTitle: "Einstellungen", stgLangLbl: "Sprache", stgThemeLbl: "Thema", stgThemeLight: "Hell",
         stgThemeDark: "Dunkel", stgShortcutsLbl: "Tastenkombinationen aktivieren",
         stgShortcutTitle: "[ Tastenkombinationen ]", stgShortcutNote: "(※Nur PC)", toMain: "Anwenden"
@@ -676,8 +641,34 @@
       }
     };
 
+    // iPhone限定の注意書き（消音モード）
+    const silentNotes = {
+      ja: "音が出ない場合は、iPhoneの消音モード（本体左側のスイッチ）をオフにしてください",
+      en: "If you hear no sound, turn off Silent Mode (the switch on the left side of your iPhone).",
+      'en-us': "If you hear no sound, turn off Silent Mode (the switch on the left side of your iPhone).",
+      ko: "소리가 나지 않으면 iPhone의 무음 모드(본체 왼쪽 스위치)를 꺼 주세요.",
+      'zh-cn': "如果没有声音，请关闭iPhone的静音模式（机身左侧的开关）。",
+      'zh-tw': "如果沒有聲音，請關閉iPhone的靜音模式（機身左側的開關）。",
+      'zh-hk': "如果沒有聲音，請關閉iPhone的靜音模式（機身左側的開關）。",
+      ru: "Если звука нет, отключите беззвучный режим (переключатель на левой стороне iPhone).",
+      pt: "Se não ouvir som, desative o modo silencioso (o botão no lado esquerdo do iPhone).",
+      es: "Si no oyes sonido, desactiva el modo silencio (el interruptor del lado izquierdo del iPhone).",
+      fr: "Si vous n'entendez rien, désactivez le mode silencieux (le commutateur sur le côté gauche de l'iPhone).",
+      it: "Se non senti nulla, disattiva la modalità silenziosa (l'interruttore sul lato sinistro dell'iPhone).",
+      de: "Wenn kein Ton zu hören ist, schalte den Stumm-Modus aus (der Schalter an der linken Seite des iPhones).",
+      pl: "Jeśli nie słychać dźwięku, wyłącz tryb cichy (przełącznik po lewej stronie iPhone'a).",
+      tr: "Ses duymuyorsanız iPhone'un sessiz modunu (cihazın sol tarafındaki anahtar) kapatın.",
+      vi: "Nếu không nghe thấy âm thanh, hãy tắt chế độ im lặng (công tắc ở cạnh trái iPhone).",
+      fil: "Kung walang tunog, patayin ang Silent Mode (ang switch sa kaliwang gilid ng iPhone).",
+      th: "หากไม่มีเสียง กรุณาปิดโหมดเงียบ (สวิตช์ด้านซ้ายของ iPhone)"
+    };
+    const isIPhone = /iPhone|iPod/.test(navigator.userAgent);
+    const silentNoteEl = document.getElementById('silent-note');
+    if (isIPhone) silentNoteEl.style.display = 'block';
+
     function switchLanguage(lang) {
       const t = translations[lang] || translations['en'];
+      silentNoteEl.textContent = silentNotes[lang] || silentNotes['en'];
 
       document.getElementById('lbl-name').textContent = t.lblName;
       document.getElementById('lbl-author').textContent = t.lblAuthor;
