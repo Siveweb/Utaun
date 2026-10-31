@@ -10,6 +10,7 @@
       font-family: 'MS Gothic', 'ＭＳ ゴシック', monospace;
       color: #000;
       user-select: none;
+      -webkit-user-select: none;
     }
 
     html, body {
@@ -58,9 +59,10 @@
       border: 1px solid #7f7f7f;
       font-size: 12px;
       cursor: pointer;
-      padding: 4px 10px;
+      padding: 8px 10px;
       outline: none;
       text-align: center;
+      touch-action: manipulation;
     }
     .btn:active {
       background-color: #d0d0d0;
@@ -158,7 +160,7 @@
     }
     .btn-listen {
       width: 100%;
-      padding: 8px;
+      padding: 10px;
     }
     .btn-generate {
       width: 100%;
@@ -383,11 +385,10 @@
       screenMain.classList.add('active');
     });
 
-    // --- 【Pink Trombone方式】音声プレビュー構造 ---
+    // --- 【完全iPhone対応】音声プレビュー構造 ---
     let audioCtx = null;
 
-    // Pink Tromboneのように画面タッチ/クリックの最初の1回で即座に起動・ロック解除する
-    function initOrResumeAudio() {
+    function getAudioContext() {
       if (!audioCtx) {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         audioCtx = new AudioContextClass();
@@ -395,37 +396,41 @@
       if (audioCtx.state === 'suspended') {
         audioCtx.resume();
       }
+      return audioCtx;
     }
 
-    // ユーザーが最初に画面を触った瞬間にオーディオエンジンをスタートさせる
-    ['touchstart', 'mousedown'].forEach(eventType => {
+    // 画面のどこかを最初に触った瞬間にオーディオのロックを解除
+    ['touchstart', 'pointerdown', 'mousedown'].forEach(eventType => {
       document.addEventListener(eventType, () => {
-        initOrResumeAudio();
+        getAudioContext();
       }, { once: true });
     });
 
-    // 「♪ Listen」ボタン処理
-    document.getElementById('btn-listen').addEventListener('click', (e) => {
+    // iPhoneで確実に反応するよう pointerdown を使用
+    const listenBtn = document.getElementById('btn-listen');
+    listenBtn.addEventListener('pointerdown', (e) => {
       e.preventDefault();
-      
-      initOrResumeAudio();
-
-      // iOS対策：ダミーの1サンプル音を再生してスピーカーの物理セッションをこじ開ける
       try {
-        const dummyBuffer = audioCtx.createBuffer(1, 1, audioCtx.sampleRate);
-        const dummySource = audioCtx.createBufferSource();
+        const ctx = getAudioContext();
+        if (ctx.state === 'suspended') {
+          ctx.resume();
+        }
+
+        // iOS対策：極小のダミー無音バッファを再生してスピーカーのセッションを強制起床
+        const dummyBuffer = ctx.createBuffer(1, 1, ctx.sampleRate);
+        const dummySource = ctx.createBufferSource();
         dummySource.buffer = dummyBuffer;
-        dummySource.connect(audioCtx.destination);
+        dummySource.connect(ctx.destination);
         dummySource.start(0);
 
         const height = parseInt(slider.value, 10) || 475;
-        playVowelSound(audioCtx, 'あ', height);
+        playVowelSound(ctx, height);
       } catch (err) {
         alert('再生エラー: ' + err.message);
       }
     });
 
-    function playVowelSound(ctx, vChar, height) {
+    function playVowelSound(ctx, height) {
       const sr = ctx.sampleRate;
       const duration = 0.8;
       const numSamples = Math.floor(sr * duration);
