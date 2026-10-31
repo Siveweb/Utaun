@@ -361,7 +361,7 @@
 
   </div>
 
-  <script>
+    <script>
     // スライダー連動
     const slider = document.getElementById('slider-height');
     const heightVal = document.getElementById('height-val');
@@ -383,33 +383,60 @@
       screenMain.classList.add('active');
     });
 
-    // --- iPhone対応：音声プレビュー (♪ Listen) の実装 ---
-    let audioCtx = null;
+    // --- 【スマホ・iOS完全対応版】音声プレビュー (♪ Listen) ---
+    let globalAudioCtx = null;
+
+    // ユーザーが画面のどこかをタッチ/クリックした瞬間にオーディオのロックを強制解除する
+    function getAudioContext() {
+      if (!globalAudioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        globalAudioCtx = new AudioContextClass();
+      }
+      if (globalAudioCtx.state === 'suspended') {
+        globalAudioCtx.resume();
+      }
+      return globalAudioCtx;
+    }
+
+    // 画面タッチ時にもコンテキストを起こしておく
+    ['touchstart', 'click'].forEach(evt => {
+      document.addEventListener(evt, () => {
+        const ctx = getAudioContext();
+        if (ctx && ctx.state === 'suspended') {
+          ctx.resume();
+        }
+      }, { once: true });
+    });
 
     document.getElementById('btn-listen').addEventListener('click', async () => {
       try {
-        if (!audioCtx) {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioCtx.state === 'suspended') {
-          await audioCtx.resume();
+        const ctx = getAudioContext();
+        if (ctx.state === 'suspended') {
+          await ctx.resume();
         }
 
+        // iOSのオーディオセッションをこじ開けるための極小無音パルスを挟む
+        const dummyBuffer = ctx.createBuffer(1, 1, ctx.sampleRate);
+        const dummySource = ctx.createBufferSource();
+        dummySource.buffer = dummyBuffer;
+        dummySource.connect(ctx.destination);
+        dummySource.start(0);
+
         const height = parseInt(slider.value, 10) || 475;
-        playVowelSound(audioCtx, 'あ', height);
+        playVowelSound(ctx, height);
       } catch (err) {
-        alert('音声再生エラー: ' + err.message);
+        alert('再生エラー: ' + err.message);
       }
     });
 
-    function playVowelSound(ctx, vChar, height) {
+    function playVowelSound(ctx, height) {
       const sr = ctx.sampleRate;
       const duration = 0.8;
       const numSamples = Math.floor(sr * duration);
       const buffer = ctx.createBuffer(1, numSamples, sr);
       const data = buffer.getChannelData(0);
 
-      const base = [800, 1200];
+      const base = [800, 1200]; // 'あ' の基本フォルマント
       const baseHeight = 200.0;
       const diff = Math.max(0, height - baseHeight);
       const shiftRate = 0.25;
@@ -615,5 +642,3 @@
       document.getElementById('to-main').textContent = t.toMain;
     }
   </script>
-</body>
-</html>
