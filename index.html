@@ -361,15 +361,15 @@
 
   </div>
 
-    <script>
-    // スライダー連動
+  <script>
+    // --- スライダー連動 ---
     const slider = document.getElementById('slider-height');
     const heightVal = document.getElementById('height-val');
     slider.addEventListener('input', (e) => {
       heightVal.textContent = e.target.value;
     });
 
-    // 画面切り替え
+    // --- 画面切り替え ---
     const screenMain = document.getElementById('screen-main');
     const screenSettings = document.getElementById('screen-settings');
 
@@ -383,60 +383,56 @@
       screenMain.classList.add('active');
     });
 
-    // --- 【スマホ・iOS完全対応版】音声プレビュー (♪ Listen) ---
-    let globalAudioCtx = null;
+    // --- 【Pink Trombone方式】音声プレビュー構造 ---
+    let audioCtx = null;
 
-    // ユーザーが画面のどこかをタッチ/クリックした瞬間にオーディオのロックを強制解除する
-    function getAudioContext() {
-      if (!globalAudioCtx) {
+    // Pink Tromboneのように画面タッチ/クリックの最初の1回で即座に起動・ロック解除する
+    function initOrResumeAudio() {
+      if (!audioCtx) {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        globalAudioCtx = new AudioContextClass();
+        audioCtx = new AudioContextClass();
       }
-      if (globalAudioCtx.state === 'suspended') {
-        globalAudioCtx.resume();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
       }
-      return globalAudioCtx;
     }
 
-    // 画面タッチ時にもコンテキストを起こしておく
-    ['touchstart', 'click'].forEach(evt => {
-      document.addEventListener(evt, () => {
-        const ctx = getAudioContext();
-        if (ctx && ctx.state === 'suspended') {
-          ctx.resume();
-        }
+    // ユーザーが最初に画面を触った瞬間にオーディオエンジンをスタートさせる
+    ['touchstart', 'mousedown'].forEach(eventType => {
+      document.addEventListener(eventType, () => {
+        initOrResumeAudio();
       }, { once: true });
     });
 
-    document.getElementById('btn-listen').addEventListener('click', async () => {
-      try {
-        const ctx = getAudioContext();
-        if (ctx.state === 'suspended') {
-          await ctx.resume();
-        }
+    // 「♪ Listen」ボタン処理
+    document.getElementById('btn-listen').addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      initOrResumeAudio();
 
-        // iOSのオーディオセッションをこじ開けるための極小無音パルスを挟む
-        const dummyBuffer = ctx.createBuffer(1, 1, ctx.sampleRate);
-        const dummySource = ctx.createBufferSource();
+      // iOS対策：ダミーの1サンプル音を再生してスピーカーの物理セッションをこじ開ける
+      try {
+        const dummyBuffer = audioCtx.createBuffer(1, 1, audioCtx.sampleRate);
+        const dummySource = audioCtx.createBufferSource();
         dummySource.buffer = dummyBuffer;
-        dummySource.connect(ctx.destination);
+        dummySource.connect(audioCtx.destination);
         dummySource.start(0);
 
         const height = parseInt(slider.value, 10) || 475;
-        playVowelSound(ctx, height);
+        playVowelSound(audioCtx, 'あ', height);
       } catch (err) {
         alert('再生エラー: ' + err.message);
       }
     });
 
-    function playVowelSound(ctx, height) {
+    function playVowelSound(ctx, vChar, height) {
       const sr = ctx.sampleRate;
       const duration = 0.8;
       const numSamples = Math.floor(sr * duration);
       const buffer = ctx.createBuffer(1, numSamples, sr);
       const data = buffer.getChannelData(0);
 
-      const base = [800, 1200]; // 'あ' の基本フォルマント
+      const base = [800, 1200];
       const baseHeight = 200.0;
       const diff = Math.max(0, height - baseHeight);
       const shiftRate = 0.25;
@@ -464,7 +460,7 @@
       const source = ctx.createBufferSource();
       source.buffer = buffer;
       source.connect(ctx.destination);
-      source.start();
+      source.start(ctx.currentTime);
     }
 
     // --- カスタムドロップダウンの制御 ---
@@ -489,7 +485,7 @@
       });
     });
 
-    // --- 翻訳データ & 切り替え ---
+    // --- 多言語ローカライズ用データ & 切替 ---
     const translations = {
       ja: {
         lblName: "名前", lblAuthor: "作者", lblReadme: "説明", lblEncoding: "文字コード",
@@ -642,3 +638,5 @@
       document.getElementById('to-main').textContent = t.toMain;
     }
   </script>
+</body>
+</html>
