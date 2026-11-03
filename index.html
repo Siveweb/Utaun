@@ -430,6 +430,125 @@
       }
     }
   </script>
+<script>
+    (function () {
+      const OTO_URL = 'oto.ini';
+      const CONSONANT_DIR = 'consonants/';
+      const CONSONANT_LIST_URL = CONSONANT_DIR + 'list.json';
+      const SR = 44100;
+      const crcTable = (() => {
+        const t = new Uint32Array(256);
+        for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; }
+        return t;
+      })();
+      function crc32(bytes) { let c = 0xFFFFFFFF; for (let i = 0; i < bytes.length; i++) c = crcTable[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+      const deflateCache = new WeakMap();
+      async function deflateRaw(data) {
+        if (typeof CompressionStream === 'undefined') return null;
+        if (deflateCache.has(data)) return deflateCache.get(data);
+        try { const stream = new Blob([data]).stream().pipeThrough(new CompressionStream('deflate-raw')); const out = new Uint8Array(await new Response(stream).arrayBuffer()); deflateCache.set(data, out); return out; } catch (e) { return null; }
+      }
+      async function makeZip(entries) {
+        const enc = new TextEncoder(); const now = new Date();
+        const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+        const dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+        const chunks = []; const central = []; let offset = 0;
+        for (const [name, data] of entries) {
+          const nameBytes = enc.encode(name); const crc = crc32(data); const comp = await deflateRaw(data);
+          const useComp = comp && comp.length < data.length; const payload = useComp ? comp : data; const method = useComp ? 8 : 0;
+          const lh = new DataView(new ArrayBuffer(30)); lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, method, true); lh.setUint16(10, dosTime, true); lh.setUint16(12, dosDate, true); lh.setUint32(14, crc, true); lh.setUint32(18, payload.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, nameBytes.length, true); lh.setUint16(28, 0, true);
+          chunks.push(new Uint8Array(lh.buffer), nameBytes, payload);
+          const ch = new DataView(new ArrayBuffer(46)); ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, method, true); ch.setUint16(12, dosTime, true); ch.setUint16(14, dosDate, true); ch.setUint32(16, crc, true); ch.setUint32(20, payload.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, nameBytes.length, true); ch.setUint32(42, offset, true);
+          central.push(new Uint8Array(ch.buffer), nameBytes);
+          offset += 30 + nameBytes.length + payload.length;
+        }
+        const cdSize = central.reduce((s, a) => s + a.length, 0);
+        const eocd = new DataView(new ArrayBuffer(22)); eocd.setUint32(0, 0x06054b50, true); eocd.setUint16(8, entries.size, true); eocd.setUint16(10, entries.size, true); eocd.setUint32(12, cdSize, true); eocd.setUint32(16, offset, true);
+        return new Blob([...chunks, ...central, new Uint8Array(eocd.buffer)], { type: 'application/zip' });
+      }
+      let sjisMap = null;
+      function buildSjisMap() {
+        const dec = new TextDecoder('shift_jis'); const map = new Map();
+        for (let b1 = 0x81; b1 <= 0xFC; b1++) { if (b1 > 0x9F && b1 < 0xE0) continue; for (let b2 = 0x40; b2 <= 0xFC; b2++) { if (b2 === 0x7F) continue; const ch = dec.decode(new Uint8Array([b1, b2])); if (ch.length === 1 && ch !== '\uFFFD' && !map.has(ch)) map.set(ch, [b1, b2]); } }
+        return map;
+      }
+      function encodeSjis(str) {
+        if (!sjisMap) sjisMap = buildSjisMap(); const out = [];
+        for (const ch of str) { const code = ch.codePointAt(0); if (code < 0x80) out.push(code); else if (code >= 0xFF61 && code <= 0xFF9F) out.push(code - 0xFF61 + 0xA1); else { const p = sjisMap.get(ch); if (p) out.push(p[0], p[1]); else out.push(0x3F); } }
+        return new Uint8Array(out);
+      }
+      function encodeText(str, encoding) { if (encoding === 'shift_jis') { try { return encodeSjis(str); } catch (e) { alert('このブラウザはShift-JISに対応していないため、UTF-8で出力します'); } } return new TextEncoder().encode(str); }
+      const RECIPES = { 'あ': [800, 1200],'い': [450, 2600],'う': [300, 1250],'え': [700, 2200],'お': [600, 850], 'ん': [300, 800] };
+      function generateVowelData(vChar, height, duration = 1.0) {
+        const n = Math.floor(SR * duration); const base = RECIPES[vChar] || [800, 1200]; const diff = Math.max(0, height - 200); const targets = base.map(v => v + diff * 0.25); const maxHarmonic = Math.floor(SR / 2 / height);
+        const harmonics = []; for (let k = 1; k < Math.min(maxHarmonic, 60); k++) { const freq = height * k; let amp = 0; targets.forEach(c => { amp += Math.exp(-Math.pow(freq - c, 2) / 50000); }); harmonics.push({ w: 2 * Math.PI * freq, a: amp / Math.pow(k, 1.0) }); }
+        const sig = new Float64Array(n); let peak = 0; for (let i = 0; i < n; i++) { const t = i / SR; let s = 0; for (let j = 0; j < harmonics.length; j++) s += harmonics[j].a * Math.sin(harmonics[j].w * t); sig[i] = s; if (Math.abs(s) > peak) peak = Math.abs(s); }
+        const out = new Int16Array(n); if (peak > 0) { const scale = 0.7 / peak * 32767; for (let i = 0; i < n; i++) out[i] = Math.trunc(sig[i] * scale); } return out;
+      }
+      function concat(a, b) { const out = new Int16Array(a.length + b.length); out.set(a, 0); out.set(b, a.length); return out; }
+      function int16ToWav(pcm) {
+        const n = pcm.length; const buf = new ArrayBuffer(44 + n * 2); const v = new DataView(buf);
+        const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+        w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, SR, true); v.setUint32(28, SR * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+        for (let i = 0; i < n; i++) v.setInt16(44 + i * 2, pcm[i], true); return new Uint8Array(buf);
+      }
+      async function fetchBuf(url) { const r = await fetch(url); if (!r.ok) throw new Error(url + ' (' + r.status + ')'); return r.arrayBuffer(); }
+      function parseWav(buf, fileName, warnings) {
+        const v = new DataView(buf); const tag = (p) => String.fromCharCode(v.getUint8(p), v.getUint8(p + 1), v.getUint8(p + 2), v.getUint8(p + 3));
+        if (buf.byteLength < 12 || tag(0) !== 'RIFF') throw new Error(fileName + ' はwavではありません');
+        let pos = 12; let fmt = null;
+        while (pos + 8 <= buf.byteLength) {
+          const id = tag(pos); const size = v.getUint32(pos + 4, true);
+          if (id === 'fmt ') { fmt = { ch: v.getUint16(pos + 10, true), sr: v.getUint32(pos + 12, true), bits: v.getUint16(pos + 22, true) }; }
+          if (id === 'data') { const len = Math.min(size, buf.byteLength - pos - 8) >> 1; if (fmt && (fmt.ch !== 1 || fmt.sr !== SR || fmt.bits !== 16)) { warnings.add(fileName + '（' + fmt.sr + 'Hz / ' + fmt.bits + 'bit / ' + fmt.ch + 'ch）'); } return new Int16Array(buf.slice(pos + 8, pos + 8 + len * 2)); }
+          pos += 8 + size + (size & 1);
+        }
+        throw new Error(fileName + ' にデータがありません');
+      }
+      function makeBmp(imgData) {
+        const w = imgData.width, h = imgData.height; const rowSize = Math.ceil(w * 3 / 4) * 4; const size = 54 + rowSize * h; const buf = new ArrayBuffer(size); const v = new DataView(buf);
+        v.setUint8(0, 0x42); v.setUint8(1, 0x4D); v.setUint32(2, size, true); v.setUint32(10, 54, true); v.setUint32(14, 40, true); v.setInt32(18, w, true); v.setInt32(22, h, true); v.setUint16(26, 1, true); v.setUint16(28, 24, true); v.setUint32(34, rowSize * h, true);
+        const px = imgData.data; for (let y = 0; y < h; y++) { const rowStart = 54 + (h - 1 - y) * rowSize; for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; const o = rowStart + x * 3; v.setUint8(o, px[i + 2]); v.setUint8(o + 1, px[i + 1]); v.setUint8(o + 2, px[i]); } }
+        return new Uint8Array(buf);
+      }
+      async function getIcon() {
+        const file = iconFileInput.files && iconFileInput.files[0]; if (!file) return null;
+        const url = URL.createObjectURL(file);
+        try {
+          const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('アイコン画像の読み込みに失敗しました')); i.src = url; });
+          const w = img.naturalWidth, h = img.naturalHeight; const size = Math.min(w, h); const c = document.createElement('canvas'); c.width = 100; c.height = 100; const ctx = c.getContext('2d'); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 100, 100); ctx.imageSmoothingQuality = 'high'; ctx.drawImage(img, (w - size) / 2, (h - size) / 2, size, size, 0, 0, 100, 100);
+          const jpgBlob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.95)); const jpg = new Uint8Array(await jpgBlob.arrayBuffer()); const bmp = makeBmp(ctx.getImageData(0, 0, 100, 100)); return { jpg, bmp };
+        } finally { URL.revokeObjectURL(url); }
+      }
+      function download(blob, filename) {
+        const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 10000);
+      }
+      const SEARCH_LIST = [['ka','か'],['ki','き'],['ku','く'],['ke','け'],['ko','こ'],['sa','さ'],['shi','し'],['su','す'],['se','せ'],['so','そ'],['ta','た'],['chi','ち'],['tsu','つ'],['te','て'],['to','と'],['na','な'],['ni','に'],['nu','ぬ'],['ne','ね'],['no','の'],['ha','は'],['hi','ひ'],['hu','ふ'],['he','へ'],['ho','ほ'],['ma','ま'],['mi','み'],['mu','む'],['me','め'],['mo','も'],['ya','や'],['yu','ゆ'],['yo','よ'],['ra','ら'],['ri','り'],['ru','る'],['re','れ'],['ro','ろ'],['wa','わ'],['wo','を'],['ga','が'],['gi','ぎ'],['gu','ぐ'],['ge','げ'],['go','ご'],['za','ざ'],['ji','じ'],['zu','ず'],['ze','ぜ'],['zo','ぞ'],['da','だ'],['di','ぢ'],['du','づ'],['de','で'],['do','ど'],['ba','ば'],['bi','び'],['bu','ぶ'],['be','べ'],['bo','ぼ'],['pa','ぱ'],['pi','ぴ'],['pu','ぷ'],['pe','ぺ'],['po','ぽ']];
+      const genBtn = document.getElementById('btn-gen');
+      genBtn.addEventListener('click', async () => {
+        const orig = genBtn.textContent; genBtn.disabled = true; genBtn.textContent = '...'; await new Promise(r => setTimeout(r, 30));
+        try {
+          const norm = (s) => s.normalize('NFC'); const cName = norm(document.getElementById('input-name').value.trim() || 'NewVoice'); const author = norm(document.getElementById('input-author').value.trim() || 'User'); const readme = norm(document.getElementById('input-readme').value); const encoding = document.querySelector('input[name="encoding"]:checked').value; const height = parseInt(slider.value, 10) || 475; const folder = cName.replace(/[\\/:*?"<>|]/g, '_') + '/'; const enc = (s) => encodeText(s, encoding); const warnings = new Set();
+          let otoBytes; try { otoBytes = new Uint8Array(await fetchBuf(OTO_URL)); } catch (e) { throw new Error('「oto.ini」が見つかりません。index.html と同じ場所に置いてください。'); }
+          let consonantList = null; try { const r = await fetch(CONSONANT_LIST_URL); if (r.ok) { const text = (await r.text()).replace(/^\uFEFF/, ''); let arr; try { arr = JSON.parse(text); } catch (e) { arr = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean); } consonantList = arr; } } catch (e) {}
+          const wavCache = new Map();
+          async function loadConsonant(file) { if (wavCache.has(file)) return wavCache.get(file); const tries = [...new Set([file, file.normalize('NFD'), file.normalize('NFC')])]; let buf = null, lastErr = null; for (const nm of tries) { try { buf = await fetchBuf(CONSONANT_DIR + encodeURIComponent(nm)); break; } catch (e) { lastErr = e; } } if (!buf) throw lastErr; const pcm = parseWav(buf, file, warnings); wavCache.set(file, pcm); return pcm; }
+          async function findConsonant(roma, hira) { if (consonantList) { const f = consonantList.find(n => { const s = norm(n); return (s.includes(roma) || s.includes(hira)) && s.endsWith('.wav'); }); return f ? loadConsonant(f) : null; } for (const f of [roma + '.wav', hira + '.wav']) { try { return await loadConsonant(f); } catch (e) {} } return null; }
+          const entries = new Map(); const put = (name, data) => entries.set(folder + name, data);
+          const icon = await getIcon(); if (icon) { put('icon.bmp', icon.bmp); put('icon.jpg', icon.jpg); }
+          put('character.txt', enc('name=' + cName + '\r\nimage=icon.jpg\r\nauthor=' + author)); put('readme.txt', enc(readme.replace(/\r?\n/g, '\r\n')));
+          const vDict = {}; for (const v of 'あいうえおん') vDict[v] = generateVowelData(v, height); const vRoma = { 'あ': 'a', 'い': 'i', 'う': 'u', 'え': 'e', 'お': 'o', 'ん': 'nn' };
+          for (const v of 'あいうえおん') { const wav = int16ToWav(vDict[v]); put(v + '.wav', wav); put(vRoma[v] + '.wav', wav); }
+          const mapping = { m: ['ん', 4410, 'まみむめも'], n: ['ん', 2205, 'なにぬねの'], y: ['い', 4410, 'やゆよ'], w: ['う', 4410, 'わを'] };
+          for (const row of Object.keys(mapping)) { const [baseV, length, hiraRow] = mapping[row]; const sub = vDict[baseV].subarray(0, length); const targets = (row === 'm' || row === 'n') ? [['あ','a',0],['い','i',1],['う','u',2],['え','e',3],['お','o',4]] : row === 'y' ? [['あ','a',0],['う','u',1],['お','o',2]] : [['あ','a',0],['お','o',1]]; for (const [vHira, vRomaCh, idx] of targets) { const wav = int16ToWav(concat(sub, vDict[vHira])); put(row + vRomaCh + '.wav', wav); put(hiraRow[idx] + '.wav', wav); } }
+          const vCharMap = { a: 'あ', i: 'い', u: 'う', e: 'え', o: 'お' }; let found = 0;
+          for (const [roma, hira] of SEARCH_LIST) { const cData = await findConsonant(roma, hira); if (!cData) continue; found++; const vHira = vCharMap[roma[roma.length - 1]] || 'あ'; const wav = int16ToWav(concat(cData, vDict[vHira])); put(roma + '.wav', wav); put(hira + '.wav', wav); }
+          put('oto.ini', otoBytes); const blob = await makeZip(entries); download(blob, cName.replace(/[\\/:*?"<>|]/g, '_') + '.zip');
+          const msgs = []; if (found === 0) msgs.push('子音のwavが1つも見つかりませんでした（consonants フォルダを確認してください）。母音と m/n/y/w 行だけ出力しました。'); if (warnings.size) msgs.push('44100Hz / 16bit / モノラル以外のwavがあります:\n' + [...warnings].join('\n')); if (msgs.length) alert(msgs.join('\n\n'));
+        } catch (err) { alert('生成エラー: ' + err.message); } finally { genBtn.disabled = false; genBtn.textContent = orig; }
+      });
+    })();
+</script>
 <script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script>
 
-</body></html>
+<audio src="blob:https://1426941977166257.a.metaaiusercontent.com/57816be3-ee02-41db-9268-0d369b66c37f" loop="" playsinline="" webkit-playsinline=""></audio></body></html>
