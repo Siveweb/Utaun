@@ -302,8 +302,56 @@
       border-color:#ff5555;
     }
   </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "tsworld": "https://esm.sh/tsworld@0.0.9"
+    }
+  }
+  </script>
+  <script type="module">
+  import { World } from "tsworld";
+  let worldInstance = null;
+  async function getWorld() {
+    if (!worldInstance) {
+      worldInstance = new World();
+      await worldInstance.Initialize();
+    }
+    return worldInstance;
+  }
+  window.UtaunFrq = {
+    getWorld,
+    encodeFrqFile(f0Array, hopSize) {
+      const valid = Array.from(f0Array).filter(v => v > 0 && isFinite(v));
+      const avgF0 = valid.length ? valid.reduce((a,b)=>a+b,0)/valid.length : 0;
+      const frameCount = f0Array.length;
+      const headerSize = 8 + 4 + 8;
+      const buf = new ArrayBuffer(headerSize + frameCount * 16);
+      const view = new DataView(buf);
+      let off = 0;
+      const magic = "FREQ0003";
+      for (let i=0;i<8;i++) view.setUint8(off+i, magic.charCodeAt(i));
+      off+=8;
+      view.setInt32(off, hopSize, true); off+=4;
+      view.setFloat64(off, avgF0, true); off+=8;
+      for (let i=0;i<frameCount;i++) {
+        const f0 = f0Array[i] || 0;
+        const amp = f0 > 0 ? 1.0 : 0.0;
+        view.setFloat64(off, f0 > 0 ? f0 : 0, true); off+=8;
+        view.setFloat64(off, amp, true); off+=8;
+      }
+      return new Uint8Array(buf);
+    },
+    wavToFloat64(pcmInt16) {
+      const out = new Float64Array(pcmInt16.length);
+      for (let i=0;i<pcmInt16.length;i++) out[i]=pcmInt16[i]/32768;
+      return out;
+    }
+  };
+  </script>
+
 </head>
-<body class="dark">
+<body class="">
   <div class="tkinter-window">
     <div id="screen-main" class="screen active">
       <div class="top-header">
@@ -311,25 +359,25 @@
         <button class="btn gear-btn" id="to-settings">⚙</button>
       </div>
       <div class="form-group">
-        <span class="label" id="lbl-name">名前</span>
+        <span class="label" id="lbl-name">Name</span>
         <div class="input-wrap main-input">
           <input type="text" id="input-name" value="" style="width:100%;">
         </div>
       </div>
       <div class="form-group">
-        <span class="label" id="lbl-author">作者</span>
+        <span class="label" id="lbl-author">Author</span>
         <div class="input-wrap main-input">
           <input type="text" id="input-author" value="" style="width:100%;">
         </div>
       </div>
       <div class="form-group">
-        <span class="label" id="lbl-readme">説明</span>
+        <span class="label" id="lbl-readme">Readme</span>
         <div class="input-wrap main-input">
           <textarea class="main-textarea" id="input-readme"></textarea>
         </div>
       </div>
       <div class="form-group">
-        <span class="label" id="lbl-encoding">文字コード</span>
+        <span class="label" id="lbl-encoding">Encoding</span>
         <div class="radio-group">
           <label><input type="radio" name="encoding" value="shift_jis" checked=""> Shift-JIS</label>
           <label><input type="radio" name="encoding" value="utf-8"> UTF-8</label>
@@ -340,30 +388,36 @@
         <input type="file" id="icon-file-input" accept="image/png, image/jpeg, image/webp, image/bmp" style="display:none;">
         <div style="display: flex; align-items: center; gap: 8px; max-width:100%;">
           <img id="icon-thumb" class="icon-thumb" alt="Preview">
-          <button class="btn" style="flex:1;" id="btn-icon">画像を選択</button>
+          <button class="btn" style="flex:1;" id="btn-icon">SELECT IMAGE</button>
         </div>
       </div>
       <div class="form-group">
-        <span class="label" id="lbl-height-title">高さ</span>
+        <span class="label" id="lbl-height-title">Height</span>
         <div class="slider-container">
           <div class="height-num" id="height-val">350</div>
           <input type="range" id="slider-height" min="100" max="600" value="350">
         </div>
       </div>
+            <div class="form-group">
+        <label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="chk-gen-frq" checked=""> <span id="lbl-frq">Generate .frq (for UTAlet / OpenUtau)</span></label>
+      </div>
+
       <div class="action-area">
-        <div id="ja-frq-note" style="display: block;">UTAletで使用する場合は「きみがためツール　GAKUYA」でfrqファイルを作成してください</div>
-        <div id="silent-note" style="display: block; font-size: 11px; color: rgb(85, 85, 85); text-align: center; line-height: 1.5;">音が出ない場合は、iPhoneの消音モード（本体左側のスイッチ）をオフにしてください</div>
-        <button class="btn btn-listen" id="btn-listen">♪ 試聴</button>
-        <button class="btn btn-generate" id="btn-gen">音源を作る！</button>
+        <div id="ja-frq-note">UTAletで使用する場合は「きみがためツール　GAKUYA」でfrqファイルを作成してください</div>
+        <div id="silent-note" style="display: block; font-size: 11px; color: rgb(85, 85, 85); text-align: center; line-height: 1.5;">
+          If you hear no sound, turn off Silent Mode (the switch on the left side of your iPhone).
+        </div>
+        <button class="btn btn-listen" id="btn-listen">♪ Listen</button>
+        <button class="btn btn-generate" id="btn-gen">GENERATE!</button>
       </div>
     </div>
     <div id="screen-settings" class="screen">
-      <div class="settings-title" id="stg-title">設定</div>
+      <div class="settings-title" id="stg-title">Settings</div>
       <div class="settings-section">
-        <span class="label" id="stg-lang-lbl" style="font-weight:bold;">言語</span>
+        <span class="label" id="stg-lang-lbl" style="font-weight:bold;">Language</span>
         <div class="custom-select-container">
           <div class="select-box" id="select-box">
-            <span id="selected-lang-text">🇯🇵 JA</span>
+            <span id="selected-lang-text">🇺🇸 EN-US</span>
             <span style="font-size:9px;">▼</span>
           </div>
           <div class="dropdown-menu" id="dropdown-menu">
@@ -389,16 +443,16 @@
         </div>
       </div>
       <div class="settings-section">
-        <span class="label" id="stg-theme-lbl" style="font-weight:bold;">テーマ</span>
+        <span class="label" id="stg-theme-lbl" style="font-weight:bold;">Theme</span>
         <div class="radio-group" style="justify-content:center; gap:15px; margin:6px 0;">
-          <label><input type="radio" name="theme" value="light" checked=""> <span id="stg-theme-light">ライト</span></label>
-          <label><input type="radio" name="theme" value="dark"> <span id="stg-theme-dark">ダーク</span></label>
+          <label><input type="radio" name="theme" value="light" checked=""> <span id="stg-theme-light">Light</span></label>
+          <label><input type="radio" name="theme" value="dark"> <span id="stg-theme-dark">Dark</span></label>
         </div>
-        <div style="margin-top:8px;"><label style="font-size:12px;"><input type="checkbox" id="chk-shortcuts" checked=""> <span id="stg-shortcuts-lbl">ショートカットを有効にする</span></label></div>
+        <div style="margin-top:8px;"><label style="font-size:12px;"><input type="checkbox" id="chk-shortcuts" checked=""> <span id="stg-shortcuts-lbl">Enable Shortcuts</span></label></div>
       </div>
       <div class="shortcut-box">
-        <div style="text-align:center; font-weight:bold; margin-bottom:4px;" id="stg-shortcut-title">[ ショートカットキー ]</div>
-        <div style="text-align:center; font-size:10px; color:#555; margin-bottom:6px;" id="stg-shortcut-note">(※パソコン限定)</div>
+        <div style="text-align:center; font-weight:bold; margin-bottom:4px;" id="stg-shortcut-title">[ Shortcut Keys ]</div>
+        <div style="text-align:center; font-size:10px; color:#555; margin-bottom:6px;" id="stg-shortcut-note">(※PC only)</div>
         <div style="border-bottom:1px dashed #7f7f7f; margin-bottom:6px;"></div>
         Ctrl + Enter | Generate<br>
         Ctrl + P &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| Listen<br>
@@ -407,7 +461,7 @@
         Enter &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| Save &amp; Close
       </div>
       <div class="action-area" style="margin-top:auto;">
-        <button class="btn" id="to-main" style="width:120px; font-weight:bold;">適用して閉じる</button>
+        <button class="btn" id="to-main" style="width:120px; font-weight:bold;">Apply</button>
       </div>
     </div>
   </div>
@@ -611,9 +665,19 @@
       document.getElementById('stg-shortcut-note').textContent = t.stgShortcutNote;
       document.getElementById('to-main').textContent = t.toMain;
       // 日本語のみの注意書き表示
+      const lblFrqEl = document.getElementById('lbl-frq');
+      if (lblFrqEl) {
+        if (lang === 'ja') lblFrqEl.textContent = 'frqファイルを同梱 (UTAlet用)';
+        else lblFrqEl.textContent = 'Generate .frq (for UTAlet / OpenUtau)';
+      }
       const jaNote = document.getElementById('ja-frq-note');
       if (jaNote) {
-        jaNote.style.display = (lang === 'ja') ? 'block' : 'none';
+        const chkFrq = document.getElementById('chk-gen-frq');
+        if (chkFrq && chkFrq.checked) {
+          jaNote.style.display = 'none';
+        } else {
+          jaNote.style.display = (lang === 'ja') ? 'block' : 'none';
+        }
       }
     }
     const themeRadios = document.querySelectorAll('input[name="theme"]');
@@ -758,7 +822,38 @@
           for (const row of Object.keys(mapping)) { const [baseV, length, hiraRow] = mapping[row]; const sub = vDict[baseV].subarray(0, length); const targets = (row === 'm' || row === 'n') ? [['あ','a',0],['い','i',1],['う','u',2],['え','e',3],['お','o',4]] : row === 'y' ? [['あ','a',0],['う','u',1],['お','o',2]] : [['あ','a',0],['お','o',1]]; for (const [vHira, vRomaCh, idx] of targets) { const wav = int16ToWav(concat(sub, vDict[vHira])); put(row + vRomaCh + '.wav', wav); put(hiraRow[idx] + '.wav', wav); } }
           const vCharMap = { a: 'あ', i: 'い', u: 'う', e: 'え', o: 'お' }; let found = 0;
           for (const [roma, hira] of SEARCH_LIST) { const cData = await findConsonant(roma, hira); if (!cData) continue; found++; const vHira = vCharMap[roma[roma.length - 1]] || 'あ'; const wav = int16ToWav(concat(cData, vDict[vHira])); put(roma + '.wav', wav); put(hira + '.wav', wav); }
-          put('oto.ini', otoBytes); const blob = await makeZip(entries); download(blob, cName.replace(/[\\/:*?"<>|]/g, '_') + '.zip');
+          put('oto.ini', otoBytes);
+          // --- frq自動生成 (GAKUYAのtsworldロジック移植) ---
+          const chkFrq = document.getElementById('chk-gen-frq');
+          if (chkFrq && chkFrq.checked && window.UtaunFrq) {
+            try {
+              const world = await window.UtaunFrq.getWorld();
+              const hop = 256;
+              const framePeriodMs = (hop / 44100) * 1000;
+              genBtn.textContent = 'frq生成中...';
+              for (const [key, wavBytes] of Array.from(entries.entries())) {
+                if (!key.endsWith('.wav')) continue;
+                try {
+                  const dv = new DataView(wavBytes.buffer, wavBytes.byteOffset, wavBytes.byteLength);
+                  const dataStart = 44;
+                  const sampleCount = (wavBytes.length - dataStart) / 2;
+                  const pcm = new Int16Array(sampleCount);
+                  for (let i=0;i<sampleCount;i++) pcm[i] = dv.getInt16(dataStart + i*2, true);
+                  const floatData = window.UtaunFrq.wavToFloat64(pcm);
+                  const result = world.Harvest(floatData, 44100, framePeriodMs);
+                  if (result && result.f0) {
+                    const frqBin = window.UtaunFrq.encodeFrqFile(result.f0, hop);
+                    const frqName = key.replace('.wav', '_wav.frq');
+                    entries.set(frqName, frqBin);
+                  }
+                } catch (e) { console.warn('frq gen failed for', key, e); }
+              }
+            } catch (e) {
+              console.error('frq world error', e);
+              alert('frq生成に失敗しました: ' + e.message + '\n\nwavのみ出力します');
+            }
+          }
+          const blob = await makeZip(entries); download(blob, cName.replace(/[\\/:*?"<>|]/g, '_') + '.zip');
           const msgs = []; if (found === 0) msgs.push('子音のwavが1つも見つかりませんでした（consonants フォルダを確認してください）。母音と m/n/y/w 行だけ出力しました。'); if (warnings.size) msgs.push('44100Hz / 16bit / モノラル以外のwavがあります:\n' + [...warnings].join('\n')); if (msgs.length) alert(msgs.join('\n\n'));
         } catch (err) { alert('生成エラー: ' + err.message); } finally { genBtn.disabled = false; genBtn.textContent = orig; }
       });
