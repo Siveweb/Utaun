@@ -1,3 +1,5 @@
+# 過去にAndroidのCUI版を目指して作ったものです。
+# ダウンロードしたい方、加工してapk形式にしたい方はXのDMで教えてください。
 import os
 import tempfile
 import wave
