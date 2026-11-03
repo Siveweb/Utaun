@@ -282,8 +282,24 @@
     body.dark div[style*="color: #555"] {
       color: #aaaaaa !important;
     }
-    body.dark #height-val {
-      color: var(--fg) !important;
+    body.dark #height-val { color: var(--fg) !important; }
+    /* 追加: 日本語専用注意書き */
+    #ja-frq-note {
+      display:none;
+      font-size:11px;
+      color:#cc0000;
+      text-align:center;
+      line-height:1.5;
+      margin:0 auto 10px auto;
+      width:100%;
+      border:1px dashed #cc0000;
+      padding:6px;
+      background:#fff5f5;
+    }
+    body.dark #ja-frq-note {
+      background:#2a1a1a;
+      color:#ffaaaa !important;
+      border-color:#ff5555;
     }
   </style>
 </head>
@@ -295,25 +311,25 @@
         <button class="btn gear-btn" id="to-settings">⚙</button>
       </div>
       <div class="form-group">
-        <span class="label" id="lbl-name">Name</span>
+        <span class="label" id="lbl-name">名前</span>
         <div class="input-wrap main-input">
           <input type="text" id="input-name" value="" style="width:100%;">
         </div>
       </div>
       <div class="form-group">
-        <span class="label" id="lbl-author">Author</span>
+        <span class="label" id="lbl-author">作者</span>
         <div class="input-wrap main-input">
           <input type="text" id="input-author" value="" style="width:100%;">
         </div>
       </div>
       <div class="form-group">
-        <span class="label" id="lbl-readme">Readme</span>
+        <span class="label" id="lbl-readme">説明</span>
         <div class="input-wrap main-input">
           <textarea class="main-textarea" id="input-readme"></textarea>
         </div>
       </div>
       <div class="form-group">
-        <span class="label" id="lbl-encoding">Encoding</span>
+        <span class="label" id="lbl-encoding">文字コード</span>
         <div class="radio-group">
           <label><input type="radio" name="encoding" value="shift_jis" checked=""> Shift-JIS</label>
           <label><input type="radio" name="encoding" value="utf-8"> UTF-8</label>
@@ -324,31 +340,30 @@
         <input type="file" id="icon-file-input" accept="image/png, image/jpeg, image/webp, image/bmp" style="display:none;">
         <div style="display: flex; align-items: center; gap: 8px; max-width:100%;">
           <img id="icon-thumb" class="icon-thumb" alt="Preview">
-          <button class="btn" style="flex:1;" id="btn-icon">SELECT IMAGE</button>
+          <button class="btn" style="flex:1;" id="btn-icon">画像を選択</button>
         </div>
       </div>
       <div class="form-group">
-        <span class="label" id="lbl-height-title">Height</span>
+        <span class="label" id="lbl-height-title">高さ</span>
         <div class="slider-container">
           <div class="height-num" id="height-val">350</div>
           <input type="range" id="slider-height" min="100" max="600" value="350">
         </div>
       </div>
       <div class="action-area">
-        <div id="silent-note" style="display: block; font-size: 11px; color: rgb(85, 85, 85); text-align: center; line-height: 1.5;">
-          If you hear no sound, turn off Silent Mode (the switch on the left side of your iPhone).
-        </div>
-        <button class="btn btn-listen" id="btn-listen">♪ Listen</button>
-        <button class="btn btn-generate" id="btn-gen">GENERATE!</button>
+        <div id="ja-frq-note" style="display: block;">UTAletで使用する場合は「きみがためツール　GAKUYA」でfrqファイルを作成してください</div>
+        <div id="silent-note" style="display: block; font-size: 11px; color: rgb(85, 85, 85); text-align: center; line-height: 1.5;">音が出ない場合は、iPhoneの消音モード（本体左側のスイッチ）をオフにしてください</div>
+        <button class="btn btn-listen" id="btn-listen">♪ 試聴</button>
+        <button class="btn btn-generate" id="btn-gen">音源を作る！</button>
       </div>
     </div>
     <div id="screen-settings" class="screen">
-      <div class="settings-title" id="stg-title">Settings</div>
+      <div class="settings-title" id="stg-title">設定</div>
       <div class="settings-section">
-        <span class="label" id="stg-lang-lbl" style="font-weight:bold;">Language</span>
+        <span class="label" id="stg-lang-lbl" style="font-weight:bold;">言語</span>
         <div class="custom-select-container">
           <div class="select-box" id="select-box">
-            <span id="selected-lang-text">🇺🇸 EN-US</span>
+            <span id="selected-lang-text">🇯🇵 JA</span>
             <span style="font-size:9px;">▼</span>
           </div>
           <div class="dropdown-menu" id="dropdown-menu">
@@ -374,16 +389,16 @@
         </div>
       </div>
       <div class="settings-section">
-        <span class="label" id="stg-theme-lbl" style="font-weight:bold;">Theme</span>
+        <span class="label" id="stg-theme-lbl" style="font-weight:bold;">テーマ</span>
         <div class="radio-group" style="justify-content:center; gap:15px; margin:6px 0;">
-          <label><input type="radio" name="theme" value="light" checked=""> <span id="stg-theme-light">Light</span></label>
-          <label><input type="radio" name="theme" value="dark"> <span id="stg-theme-dark">Dark</span></label>
+          <label><input type="radio" name="theme" value="light" checked=""> <span id="stg-theme-light">ライト</span></label>
+          <label><input type="radio" name="theme" value="dark"> <span id="stg-theme-dark">ダーク</span></label>
         </div>
-        <div style="margin-top:8px;"><label style="font-size:12px;"><input type="checkbox" id="chk-shortcuts" checked=""> <span id="stg-shortcuts-lbl">Enable Shortcuts</span></label></div>
+        <div style="margin-top:8px;"><label style="font-size:12px;"><input type="checkbox" id="chk-shortcuts" checked=""> <span id="stg-shortcuts-lbl">ショートカットを有効にする</span></label></div>
       </div>
       <div class="shortcut-box">
-        <div style="text-align:center; font-weight:bold; margin-bottom:4px;" id="stg-shortcut-title">[ Shortcut Keys ]</div>
-        <div style="text-align:center; font-size:10px; color:#555; margin-bottom:6px;" id="stg-shortcut-note">(※PC only)</div>
+        <div style="text-align:center; font-weight:bold; margin-bottom:4px;" id="stg-shortcut-title">[ ショートカットキー ]</div>
+        <div style="text-align:center; font-size:10px; color:#555; margin-bottom:6px;" id="stg-shortcut-note">(※パソコン限定)</div>
         <div style="border-bottom:1px dashed #7f7f7f; margin-bottom:6px;"></div>
         Ctrl + Enter | Generate<br>
         Ctrl + P &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| Listen<br>
@@ -392,7 +407,7 @@
         Enter &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| Save &amp; Close
       </div>
       <div class="action-area" style="margin-top:auto;">
-        <button class="btn" id="to-main" style="width:120px; font-weight:bold;">Apply</button>
+        <button class="btn" id="to-main" style="width:120px; font-weight:bold;">適用して閉じる</button>
       </div>
     </div>
   </div>
@@ -529,6 +544,7 @@
         selectedLangText.textContent = e.target.textContent.trim();
         dropdownMenu.classList.remove('open');
         switchLanguage(e.target.getAttribute('data-value'));
+        localStorage.setItem('utaun-lang', e.target.getAttribute('data-value'));
       });
     });
     const translations = {
@@ -594,6 +610,11 @@
       document.getElementById('stg-shortcut-title').textContent = t.stgShortcutTitle;
       document.getElementById('stg-shortcut-note').textContent = t.stgShortcutNote;
       document.getElementById('to-main').textContent = t.toMain;
+      // 日本語のみの注意書き表示
+      const jaNote = document.getElementById('ja-frq-note');
+      if (jaNote) {
+        jaNote.style.display = (lang === 'ja') ? 'block' : 'none';
+      }
     }
     const themeRadios = document.querySelectorAll('input[name="theme"]');
     function applyTheme(theme) {
@@ -616,21 +637,20 @@
       document.querySelector('input[name="theme"][value="dark"]').checked = true;
       applyTheme('dark');
     }
+    // 保存された言語を復元
+    const savedLang = localStorage.getItem('utaun-lang');
+    if (savedLang) {
+      const item = document.querySelector(`.dropdown-item[data-value="${savedLang}"]`);
+      if (item) {
+        document.getElementById('selected-lang-text').textContent = item.textContent.trim();
+        switchLanguage(savedLang);
+      }
+    }
     (function () {
       const OTO_URL = 'oto.ini';
       const CONSONANT_DIR = 'consonants/';
       const CONSONANT_LIST_URL = CONSONANT_DIR + 'list.json';
       const SR = 44100;
-      // --- SILENT FRQ GENERATION (no UI) ---
-      function makeFrqFromConstantF0(sampleCount, f0Value, hopSize=512){
-        const frameCount=Math.ceil(sampleCount/hopSize);
-        const buf=new ArrayBuffer(8+4+8+frameCount*16);
-        const view=new DataView(buf); let o=0;
-        new TextEncoder().encodeInto("FREQ0003", new Uint8Array(buf,o,8)); o+=8;
-        view.setInt32(o, hopSize, true); o+=4; view.setFloat64(o, f0Value, true); o+=8;
-        for(let i=0;i<frameCount;i++){view.setFloat64(o, f0Value, true); o+=8; view.setFloat64(o, 1.0, true); o+=8;}
-        return new Uint8Array(buf);
-      }
       const crcTable = (() => {
         const t = new Uint32Array(256);
         for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; }
@@ -730,21 +750,14 @@
           async function loadConsonant(file) { if (wavCache.has(file)) return wavCache.get(file); const tries = [...new Set([file, file.normalize('NFD'), file.normalize('NFC')])]; let buf = null, lastErr = null; for (const nm of tries) { try { buf = await fetchBuf(CONSONANT_DIR + encodeURIComponent(nm)); break; } catch (e) { lastErr = e; } } if (!buf) throw lastErr; const pcm = parseWav(buf, file, warnings); wavCache.set(file, pcm); return pcm; }
           async function findConsonant(roma, hira) { if (consonantList) { const f = consonantList.find(n => { const s = norm(n); return (s.includes(roma) || s.includes(hira)) && s.endsWith('.wav'); }); return f ? loadConsonant(f) : null; } for (const f of [roma + '.wav', hira + '.wav']) { try { return await loadConsonant(f); } catch (e) {} } return null; }
           const entries = new Map(); const put = (name, data) => entries.set(folder + name, data);
-          const putWithFrq = (name, pcmData) => {
-            const wavBytes = int16ToWav(pcmData);
-            const frqBytes = makeFrqFromConstantF0(pcmData.length, height);
-            put(name, wavBytes);
-            put(name + '.frq', frqBytes);
-            put(name.replace('.wav', '_wav.frq'), frqBytes);
-          };
           const icon = await getIcon(); if (icon) { put('icon.bmp', icon.bmp); put('icon.jpg', icon.jpg); }
           put('character.txt', enc('name=' + cName + '\r\nimage=icon.jpg\r\nauthor=' + author)); put('readme.txt', enc(readme.replace(/\r?\n/g, '\r\n')));
           const vDict = {}; for (const v of 'あいうえおん') vDict[v] = generateVowelData(v, height); const vRoma = { 'あ': 'a', 'い': 'i', 'う': 'u', 'え': 'e', 'お': 'o', 'ん': 'nn' };
-          for (const v of 'あいうえおん') { putWithFrq(v + '.wav', vDict[v]); putWithFrq(vRoma[v] + '.wav', vDict[v]); }
+          for (const v of 'あいうえおん') { const wav = int16ToWav(vDict[v]); put(v + '.wav', wav); put(vRoma[v] + '.wav', wav); }
           const mapping = { m: ['ん', 4410, 'まみむめも'], n: ['ん', 2205, 'なにぬねの'], y: ['い', 4410, 'やゆよ'], w: ['う', 4410, 'わを'] };
-          for (const row of Object.keys(mapping)) { const [baseV, length, hiraRow] = mapping[row]; const sub = vDict[baseV].subarray(0, length); const targets = (row === 'm' || row === 'n') ? [['あ','a',0],['い','i',1],['う','u',2],['え','e',3],['お','o',4]] : row === 'y' ? [['あ','a',0],['う','u',1],['お','o',2]] : [['あ','a',0],['お','o',1]]; for (const [vHira, vRomaCh, idx] of targets) { const combined = concat(sub, vDict[vHira]); putWithFrq(row + vRomaCh + '.wav', combined); putWithFrq(hiraRow[idx] + '.wav', combined); } }
+          for (const row of Object.keys(mapping)) { const [baseV, length, hiraRow] = mapping[row]; const sub = vDict[baseV].subarray(0, length); const targets = (row === 'm' || row === 'n') ? [['あ','a',0],['い','i',1],['う','u',2],['え','e',3],['お','o',4]] : row === 'y' ? [['あ','a',0],['う','u',1],['お','o',2]] : [['あ','a',0],['お','o',1]]; for (const [vHira, vRomaCh, idx] of targets) { const wav = int16ToWav(concat(sub, vDict[vHira])); put(row + vRomaCh + '.wav', wav); put(hiraRow[idx] + '.wav', wav); } }
           const vCharMap = { a: 'あ', i: 'い', u: 'う', e: 'え', o: 'お' }; let found = 0;
-          for (const [roma, hira] of SEARCH_LIST) { const cData = await findConsonant(roma, hira); if (!cData) continue; found++; const vHira = vCharMap[roma[roma.length - 1]] || 'あ'; const combined = concat(cData, vDict[vHira]); putWithFrq(roma + '.wav', combined); putWithFrq(hira + '.wav', combined); }
+          for (const [roma, hira] of SEARCH_LIST) { const cData = await findConsonant(roma, hira); if (!cData) continue; found++; const vHira = vCharMap[roma[roma.length - 1]] || 'あ'; const wav = int16ToWav(concat(cData, vDict[vHira])); put(roma + '.wav', wav); put(hira + '.wav', wav); }
           put('oto.ini', otoBytes); const blob = await makeZip(entries); download(blob, cName.replace(/[\\/:*?"<>|]/g, '_') + '.zip');
           const msgs = []; if (found === 0) msgs.push('子音のwavが1つも見つかりませんでした（consonants フォルダを確認してください）。母音と m/n/y/w 行だけ出力しました。'); if (warnings.size) msgs.push('44100Hz / 16bit / モノラル以外のwavがあります:\n' + [...warnings].join('\n')); if (msgs.length) alert(msgs.join('\n\n'));
         } catch (err) { alert('生成エラー: ' + err.message); } finally { genBtn.disabled = false; genBtn.textContent = orig; }
