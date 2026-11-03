@@ -264,12 +264,23 @@
       background-color: var(--input-bg) !important;
       color: var(--fg);
     }
-    body.dark .main-textarea::placeholder {
-      color: #888;
+    body.dark .main-textarea::placeholder { color: #888; }
+    body.dark .input-wrap:has(.main-textarea) { background-color: var(--input-bg); }
+    body.dark #silent-note {
+      color: #aaaaaa !important;
     }
-    /* input-wrapの中のtextareaも確実に暗く */
-    body.dark .input-wrap:has(.main-textarea) {
-      background-color: var(--input-bg);
+
+    body.dark #stg-shortcut-note {
+      color: #aaaaaa !important;
+    }
+    /* すべての薄いグレーの補足文字をダークでは明るくする汎用ルール */
+    body.dark div[style*="color:#555"],
+    body.dark div[style*="color: #555"] {
+      color: #aaaaaa !important;
+    }
+
+    body.dark #height-val {
+      color: var(--fg) !important;
     }
 
 
