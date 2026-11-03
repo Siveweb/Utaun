@@ -22,7 +22,7 @@
 </style>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Utaun Web-BETA</title>
+  <title>Utaun Web</title>
   <style>
     * {
       box-sizing: border-box;
@@ -690,7 +690,7 @@
         return new Uint8Array(out);
       }
       function encodeText(str, encoding) { if (encoding === 'shift_jis') { try { return encodeSjis(str); } catch (e) { alert('このブラウザはShift-JISに対応していないため、UTF-8で出力します'); } } return new TextEncoder().encode(str); }
-      const RECIPES = { 'あ': [800, 1200], 'い': [300, 2200], 'う': [300, 900], 'え': [500, 1700], 'お': [400, 800], 'ん': [300, 800] };
+      const RECIPES = { 'あ': [800, 1200],'い': [450, 2600],'う': [300, 1250],'え': [700, 2200],'お': [600, 850], 'ん': [300, 800] };
       function generateVowelData(vChar, height, duration = 1.0) {
         const n = Math.floor(SR * duration); const base = RECIPES[vChar] || [800, 1200]; const diff = Math.max(0, height - 200); const targets = base.map(v => v + diff * 0.25); const maxHarmonic = Math.floor(SR / 2 / height);
         const harmonics = []; for (let k = 1; k < Math.min(maxHarmonic, 30); k++) { const freq = height * k; let amp = 0; targets.forEach(c => { amp += Math.exp(-Math.pow(freq - c, 2) / 50000); }); harmonics.push({ w: 2 * Math.PI * freq, a: amp / Math.pow(k, 1.2) }); }
