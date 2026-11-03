@@ -1,8 +1,27 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
+<html lang="ja"><head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Utaun Web-BETA</title>
   <style>
     * {
@@ -14,31 +33,36 @@
     }
     html, body {
       width: 100%;
+      max-width: 100%;
       height: 100%;
       margin: 0;
       padding: 0;
-      background-color: #f0f0f0;
+      background-color: #ffffff;
+      overflow-x: hidden;
+      overscroll-behavior-x: none;
     }
     body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 10px;
+      display: block;
+      padding: 0;
+      position: relative;
     }
     .tkinter-window {
       width: 100%;
+      max-width: 100%;
       height: 100%;
-      max-width: 600px;
-      max-height: 850px;
+      min-height: 100dvh;
+      max-height: none;
       background-color: #ffffff;
-      border: 1px solid #7f7f7f;
+      border: none;
       display: flex;
       flex-direction: column;
       padding: 20px;
+      overflow-x: hidden;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       position: relative;
     }
-    .screen { display: none; flex-direction: column; height: 100%; }
+    .screen { display: none; flex-direction: column; height: 100%; min-height: 100%; }
     .screen.active { display: flex; }
 
     .btn {
@@ -57,8 +81,9 @@
     .input-wrap {
       border: 1px solid #7f7f7f;
       background-color: #ffffff;
-      display: inline-block;
+      display: block;
       padding: 1px;
+      max-width: 100%;
     }
     input[type="text"] {
       border: none;
@@ -68,6 +93,8 @@
       background: transparent;
       -webkit-user-select: text;
       user-select: text;
+      width: 100%;
+      max-width: 100%;
     }
 
     .top-header {
@@ -75,15 +102,17 @@
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 15px;
+      max-width: 100%;
     }
     .app-title { font-size: 28px; font-weight: bold; margin: 0; }
     .gear-btn { font-size: 16px; padding: 4px 8px; }
 
-    .form-group { margin-bottom: 12px; text-align: center; width: 100%; }
+    .form-group { margin-bottom: 12px; text-align: center; width: 100%; max-width: 100%; }
     .label { font-size: 13px; margin-bottom: 3px; display: block; }
-    .main-input { width: 100%; }
+    .main-input { width: 100%; max-width: 100%; }
     .main-textarea {
       width: 100%;
+      max-width: 100%;
       height: 80px;
       resize: none;
       border: none;
@@ -103,10 +132,11 @@
     }
     .radio-group label { cursor: pointer; }
 
-    .slider-container { width: 100%; margin: 0 auto; }
+    .slider-container { width: 100%; max-width: 100%; margin: 0 auto; }
     .height-num { font-size: 12px; text-align: right; margin-bottom: 2px; }
     input[type="range"] {
       width: 100%;
+      max-width: 100%;
       accent-color: #555;
       background: #c0c0c0;
       height: 6px;
@@ -119,10 +149,11 @@
       align-items: center;
       gap: 10px;
       width: 100%;
+      max-width: 100%;
       padding-bottom: 10px;
     }
-    .btn-listen { width: 100%; padding: 10px; }
-    .btn-generate { width: 100%; font-size: 14px; font-weight: bold; padding: 10px; }
+    .btn-listen { width: 100%; padding: 10px; max-width: 100%; }
+    .btn-generate { width: 100%; max-width: 100%; font-size: 14px; font-weight: bold; padding: 10px; }
 
     .settings-title { font-size: 16px; font-weight: bold; text-align: center; margin-bottom: 20px; }
     .settings-section { text-align: center; margin-bottom: 20px; }
@@ -131,11 +162,12 @@
       padding: 10px;
       margin: 15px auto;
       width: 90%;
+      max-width: 100%;
       text-align: left;
       font-size: 11px;
     }
 
-    .custom-select-container { position: relative; width: 160px; margin: 6px auto 0 auto; }
+    .custom-select-container { position: relative; width: 160px; max-width: 100%; margin: 6px auto 0 auto; }
     .select-box {
       background-color: #ffffff;
       border: 1px solid #7f7f7f;
@@ -174,12 +206,12 @@
     .dropdown-item:last-child { border-bottom: none; }
     .dropdown-item:hover { background-color: #000080; color: #ffffff; }
 
-    /* アイコンプレビュー用スタイル */
     .icon-preview-container {
       display: flex;
       align-items: center;
       gap: 10px;
       width: 100%;
+      max-width: 100%;
     }
     .icon-thumb {
       width: 32px;
@@ -188,10 +220,62 @@
       object-fit: cover;
       background: #fff;
       display: none;
+      flex-shrink: 0;
     }
+  
+    :root {
+      --bg: #ffffff;
+      --fg: #000000;
+      --panel-bg: #ffffff;
+      --input-bg: #ffffff;
+      --btn-bg: #f0f0f0;
+      --btn-active: #d0d0d0;
+      --border: #7f7f7f;
+      --slider-bg: #c0c0c0;
+    }
+    body.dark, body.dark .tkinter-window {
+      --bg: #121212;
+      --fg: #e0e0e0;
+      --panel-bg: #1e1e1e;
+      --input-bg: #2a2a2a;
+      --btn-bg: #333333;
+      --btn-active: #444444;
+      --border: #555555;
+      --slider-bg: #444;
+    }
+    body.dark, body.dark .tkinter-window {
+      background-color: var(--bg);
+      color: var(--fg);
+    }
+    body.dark .tkinter-window { background-color: var(--bg); }
+    body.dark * { color: var(--fg); border-color: var(--border); }
+    body.dark .input-wrap { background-color: var(--input-bg); border-color: var(--border); }
+    body.dark .btn { background-color: var(--btn-bg); border-color: var(--border); color: var(--fg); }
+    body.dark .btn:active { background-color: var(--btn-active); }
+    body.dark .select-box, body.dark .dropdown-menu, body.dark .shortcut-box {
+      background-color: var(--input-bg);
+      border-color: var(--border);
+    }
+    body.dark .dropdown-item:hover { background-color: #333; color: #fff; }
+    body.dark input[type="text"], body.dark .main-textarea { color: var(--fg); }
+    body.dark input[type="range"] { background: var(--slider-bg); }
+
+    body.dark .main-textarea {
+      background-color: var(--input-bg) !important;
+      color: var(--fg);
+    }
+    body.dark .main-textarea::placeholder {
+      color: #888;
+    }
+    /* input-wrapの中のtextareaも確実に暗く */
+    body.dark .input-wrap:has(.main-textarea) {
+      background-color: var(--input-bg);
+    }
+
+
   </style>
 </head>
-<body>
+<body class="dark">
 
   <div class="tkinter-window">
 
@@ -226,16 +310,15 @@
       <div class="form-group">
         <span class="label" id="lbl-encoding">Encoding</span>
         <div class="radio-group">
-          <label><input type="radio" name="encoding" value="shift_jis" checked> Shift-JIS</label>
+          <label><input type="radio" name="encoding" value="shift_jis" checked=""> Shift-JIS</label>
           <label><input type="radio" name="encoding" value="utf-8"> UTF-8</label>
         </div>
       </div>
 
-      <!-- アイコン選択部分（隠しファイル入力 ＆ プレビュー付き） -->
       <div class="form-group">
         <span class="label">ICON</span>
         <input type="file" id="icon-file-input" accept="image/png, image/jpeg, image/webp, image/bmp" style="display:none;">
-        <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px; max-width:100%;">
           <img id="icon-thumb" class="icon-thumb" alt="Preview">
           <button class="btn" style="flex:1;" id="btn-icon">SELECT IMAGE</button>
         </div>
@@ -244,13 +327,13 @@
       <div class="form-group">
         <span class="label" id="lbl-height-title">Height</span>
         <div class="slider-container">
-          <div class="height-num" id="height-val">350</div>
+          <div class="height-num" id="height-val">298</div>
           <input type="range" id="slider-height" min="100" max="600" value="350">
         </div>
       </div>
 
       <div class="action-area">
-        <div id="silent-note" style="display:none; font-size:11px; color:#555; text-align:center; line-height:1.5;">
+        <div id="silent-note" style="display: block; font-size: 11px; color: rgb(85, 85, 85); text-align: center; line-height: 1.5;">
           If you hear no sound, turn off Silent Mode (the switch on the left side of your iPhone).
         </div>
         <button class="btn btn-listen" id="btn-listen">♪ Listen</button>
@@ -295,10 +378,10 @@
       <div class="settings-section">
         <span class="label" id="stg-theme-lbl" style="font-weight:bold;">Theme</span>
         <div class="radio-group" style="justify-content:center; gap:15px; margin:6px 0;">
-          <label><input type="radio" name="theme" value="light" checked> <span id="stg-theme-light">Light</span></label>
+          <label><input type="radio" name="theme" value="light" checked=""> <span id="stg-theme-light">Light</span></label>
           <label><input type="radio" name="theme" value="dark"> <span id="stg-theme-dark">Dark</span></label>
         </div>
-        <div style="margin-top:8px;"><label style="font-size:12px;"><input type="checkbox" id="chk-shortcuts" checked> <span id="stg-shortcuts-lbl">Enable Shortcuts</span></label></div>
+        <div style="margin-top:8px;"><label style="font-size:12px;"><input type="checkbox" id="chk-shortcuts" checked=""> <span id="stg-shortcuts-lbl">Enable Shortcuts</span></label></div>
       </div>
 
       <div class="shortcut-box">
@@ -309,7 +392,7 @@
         Ctrl + P &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| Listen<br>
         Ctrl + A &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| Select All<br>
         Ctrl + C / V | Copy / Paste<br>
-        Enter &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| Save & Close
+        Enter &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| Save &amp; Close
       </div>
 
       <div class="action-area" style="margin-top:auto;">
@@ -320,17 +403,12 @@
   </div>
 
   <script>
-    // --- スライダー連動 ---
     const slider = document.getElementById('slider-height');
     const heightVal = document.getElementById('height-val');
-    slider.addEventListener('input', (e) => {
-      heightVal.textContent = e.target.value;
-    });
+    slider.addEventListener('input', (e) => { heightVal.textContent = e.target.value; });
 
-    // --- 画面切り替え ---
     const screenMain = document.getElementById('screen-main');
     const screenSettings = document.getElementById('screen-settings');
-
     document.getElementById('to-settings').addEventListener('click', () => {
       screenMain.classList.remove('active');
       screenSettings.classList.add('active');
@@ -340,60 +418,36 @@
       screenMain.classList.add('active');
     });
 
-    // =====================================================
-    //  アイコン画像読み込み・BMP/JPG変換処理
-    // =====================================================
     const iconFileInput = document.getElementById('icon-file-input');
     const btnIcon = document.getElementById('btn-icon');
     const iconThumb = document.getElementById('icon-thumb');
-
     let loadedIconBlobBmp = null;
     let loadedIconBlobJpg = null;
-
-    btnIcon.addEventListener('click', () => {
-      iconFileInput.click();
-    });
-
+    btnIcon.addEventListener('click', () => { iconFileInput.click(); });
     iconFileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = function(event) {
         const img = new Image();
         img.onload = function() {
-          // 正方形(例: 100x100)のCanvasに描画して変換
           const canvas = document.createElement('canvas');
-          canvas.width = 100;
-          canvas.height = 100;
+          canvas.width = 100; canvas.height = 100;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, 100, 100);
-
-          // プレビュー表示
           iconThumb.src = canvas.toDataURL('image/jpeg');
           iconThumb.style.display = 'block';
           btnIcon.textContent = file.name;
-
-          // image/bmp と image/jpeg のBlobを生成（ZIP出力用）
-          canvas.toBlob((blobBmp) => {
-            loadedIconBlobBmp = blobBmp;
-          }, 'image/bmp');
-
-          canvas.toBlob((blobJpg) => {
-            loadedIconBlobJpg = blobJpg;
-          }, 'image/jpeg', 0.9);
+          canvas.toBlob((blobBmp) => { loadedIconBlobBmp = blobBmp; }, 'image/bmp');
+          canvas.toBlob((blobJpg) => { loadedIconBlobJpg = blobJpg; }, 'image/jpeg', 0.9);
         };
         img.src = event.target.result;
       };
       reader.readAsDataURL(file);
     });
 
-    // =====================================================
-    //  音声まわり（試聴ボタン押下時に自動で有効化する構成）
-    // =====================================================
     let audioCtx = null;
     let masterGain = null;
-
     function initAudioContext() {
       if (!audioCtx) {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -403,7 +457,6 @@
         masterGain.connect(audioCtx.destination);
       }
     }
-
     let silentEl = null;
     function makeSilentWavUrl() {
       const sr = 8000, n = sr;
@@ -430,97 +483,57 @@
         if (silentEl.paused) silentEl.play().catch(() => {});
       } catch (e) {}
     }
-
     async function unlockAudio() {
       startSilentAudio();
-      try {
-        if (navigator.audioSession) navigator.audioSession.type = 'playback';
-      } catch (e) {}
-
+      try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
       initAudioContext();
-
-      if (audioCtx.state !== 'running') {
-        try { await audioCtx.resume(); } catch (e) {}
-      }
-
+      if (audioCtx.state !== 'running') { try { await audioCtx.resume(); } catch (e) {} }
       try {
         const b = audioCtx.createBuffer(1, 1, 22050);
         const s = audioCtx.createBufferSource();
-        s.buffer = b;
-        s.connect(audioCtx.destination);
-        s.start(0);
+        s.buffer = b; s.connect(audioCtx.destination); s.start(0);
       } catch (e) {}
     }
-
     const listenBtn = document.getElementById('btn-listen');
     listenBtn.addEventListener('click', handleListen);
-
     async function handleListen() {
       await unlockAudio();
-
       try {
         const height = parseInt(slider.value, 10) || 475;
         playVowelSound(audioCtx, masterGain, height);
-      } catch (err) {
-        alert('再生エラー: ' + err.message);
-      }
+      } catch (err) { alert('再生エラー: ' + err.message); }
     }
-
     function playVowelSound(ctx, destinationNode, height) {
-      const sr = ctx.sampleRate;
-      const duration = 0.8;
+      const sr = ctx.sampleRate; const duration = 0.8;
       const numSamples = Math.floor(sr * duration);
       const buffer = ctx.createBuffer(1, numSamples, sr);
       const data = buffer.getChannelData(0);
-
-      const base = [800, 1200];
-      const baseHeight = 200.0;
-      const diff = Math.max(0, height - baseHeight);
-      const shiftRate = 0.25;
+      const base = [800, 1200]; const baseHeight = 200.0;
+      const diff = Math.max(0, height - baseHeight); const shiftRate = 0.25;
       const targets = base.map(val => val + (diff * shiftRate));
       const maxHarmonic = Math.floor(sr / 2 / height);
-
       let peak = 0;
       for (let i = 0; i < numSamples; i++) {
-        const t = i / sr;
-        let signal = 0;
+        const t = i / sr; let signal = 0;
         for (let n = 1; n < Math.min(maxHarmonic, 30); n++) {
-          const freq = height * n;
-          let amp = 0;
-          targets.forEach(c => {
-            amp += Math.exp(-Math.pow(freq - c, 2) / 50000);
-          });
+          const freq = height * n; let amp = 0;
+          targets.forEach(c => { amp += Math.exp(-Math.pow(freq - c, 2) / 50000); });
           signal += (amp / Math.pow(n, 1.2)) * Math.sin(2 * Math.PI * freq * t);
         }
-        let env = 1.0;
-        if (i > numSamples - sr * 0.2) {
-          env = (numSamples - i) / (sr * 0.2);
-        }
-        data[i] = signal * env;
-        peak = Math.max(peak, Math.abs(data[i]));
+        let env = 1.0; if (i > numSamples - sr * 0.2) { env = (numSamples - i) / (sr * 0.2); }
+        data[i] = signal * env; peak = Math.max(peak, Math.abs(data[i]));
       }
-
       const norm = peak > 0 ? 0.6 / peak : 1;
       for (let i = 0; i < numSamples; i++) data[i] *= norm;
-
-      const source = ctx.createBufferSource();
-      source.buffer = buffer;
-      source.connect(destinationNode);
-      source.start(ctx.currentTime);
+      const source = ctx.createBufferSource(); source.buffer = buffer;
+      source.connect(destinationNode); source.start(ctx.currentTime);
     }
 
-    // --- カスタムドロップダウンの制御 ---
     const selectBox = document.getElementById('select-box');
     const dropdownMenu = document.getElementById('dropdown-menu');
     const selectedLangText = document.getElementById('selected-lang-text');
-
-    selectBox.addEventListener('click', (e) => {
-      e.stopPropagation();
-      dropdownMenu.classList.toggle('open');
-    });
-    document.addEventListener('click', () => {
-      dropdownMenu.classList.remove('open');
-    });
+    selectBox.addEventListener('click', (e) => { e.stopPropagation(); dropdownMenu.classList.toggle('open'); });
+    document.addEventListener('click', () => { dropdownMenu.classList.remove('open'); });
     document.querySelectorAll('.dropdown-item').forEach(item => {
       item.addEventListener('click', (e) => {
         selectedLangText.textContent = e.target.textContent.trim();
@@ -529,136 +542,26 @@
       });
     });
 
-    // --- 多言語ローカライズ ---
     const translations = {
-      ja: {
-        lblName: "名前", lblAuthor: "作者", lblReadme: "説明", lblEncoding: "文字コード",
-        btnIcon: "画像を選択", lblHeightTitle: "高さ", btnListen: "♪ 試聴", btnGen: "音源を作る！",
-        stgTitle: "設定", stgLangLbl: "言語", stgThemeLbl: "テーマ", stgThemeLight: "ライト",
-        stgThemeDark: "ダーク", stgShortcutsLbl: "ショートカットを有効にする",
-        stgShortcutTitle: "[ ショートカットキー ]", stgShortcutNote: "(※パソコン限定)", toMain: "適用して閉じる"
-      },
-      en: {
-        lblName: "Name", lblAuthor: "Author", lblReadme: "Readme", lblEncoding: "Encoding",
-        btnIcon: "SELECT IMAGE", lblHeightTitle: "Height", btnListen: "♪ Listen", btnGen: "GENERATE!",
-        stgTitle: "Settings", stgLangLbl: "Language", stgThemeLbl: "Theme", stgThemeLight: "Light",
-        stgThemeDark: "Dark", stgShortcutsLbl: "Enable Shortcuts",
-        stgShortcutTitle: "[ Shortcut Keys ]", stgShortcutNote: "(※PC only)", toMain: "Apply"
-      },
-      'en-us': {
-        lblName: "Name", lblAuthor: "Author", lblReadme: "Readme", lblEncoding: "Encoding",
-        btnIcon: "SELECT IMAGE", lblHeightTitle: "Height", btnListen: "♪ Listen", btnGen: "GENERATE!",
-        stgTitle: "Settings", stgLangLbl: "Language", stgThemeLbl: "Theme", stgThemeLight: "Light",
-        stgThemeDark: "Dark", stgShortcutsLbl: "Enable Shortcuts",
-        stgShortcutTitle: "[ Shortcut Keys ]", stgShortcutNote: "(※PC only)", toMain: "Apply"
-      },
-      ko: {
-        lblName: "이름", lblAuthor: "작성자", lblReadme: "설명", lblEncoding: "인코딩",
-        btnIcon: "이미지 선택", lblHeightTitle: "높이", btnListen: "♪ 들어보기", btnGen: "음원 생성!",
-        stgTitle: "설정", stgLangLbl: "언어", stgThemeLbl: "테마", stgThemeLight: "라이트",
-        stgThemeDark: "다크", stgShortcutsLbl: "단축키 활성화",
-        stgShortcutTitle: "[ 단축키 ]", stgShortcutNote: "(※PC 전용)", toMain: "적용"
-      },
-      'zh-cn': {
-        lblName: "姓名", lblAuthor: "作者", lblReadme: "说明", lblEncoding: "编码",
-        btnIcon: "选择图像", lblHeightTitle: "高度", btnListen: "♪ 试听", btnGen: "生成音源！",
-        stgTitle: "设置", stgLangLbl: "语言", stgThemeLbl: "主题", stgThemeLight: "浅色",
-        stgThemeDark: "深色", stgShortcutsLbl: "启用快捷键",
-        stgShortcutTitle: "[ 快捷键 ]", stgShortcutNote: "(※仅限电脑)", toMain: "应用"
-      },
-      'zh-tw': {
-        lblName: "姓名", lblAuthor: "作者", lblReadme: "說明", lblEncoding: "編碼",
-        btnIcon: "選擇圖片", lblHeightTitle: "高度", btnListen: "♪ 試聽", btnGen: "產生音源！",
-        stgTitle: "設定", stgLangLbl: "語言", stgThemeLbl: "主題", stgThemeLight: "淺色",
-        stgThemeDark: "深色", stgShortcutsLbl: "啟用快捷鍵",
-        stgShortcutTitle: "[ 快捷鍵 ]", stgShortcutNote: "(※僅限電腦)", toMain: "套用"
-      },
-      'zh-hk': {
-        lblName: "姓名", lblAuthor: "作者", lblReadme: "說明", lblEncoding: "編碼",
-        btnIcon: "選擇圖片", lblHeightTitle: "高度", btnListen: "♪ 試聽", btnGen: "產生音源！",
-        stgTitle: "設定", stgLangLbl: "語言", stgThemeLbl: "主題", stgThemeLight: "淺色",
-        stgThemeDark: "深色", stgShortcutsLbl: "啟用快捷鍵",
-        stgShortcutTitle: "[ 快捷鍵 ]", stgShortcutNote: "(※僅限電腦)", toMain: "套用"
-      },
-      ru: {
-        lblName: "Имя", lblAuthor: "Автор", lblReadme: "Описание", lblEncoding: "Кодировка",
-        btnIcon: "ВЫБРАТЬ ИЗОБРАЖЕНИЕ", lblHeightTitle: "Высота", btnListen: "♪ Прослушать", btnGen: "СОЗДАТЬ!",
-        stgTitle: "Настройки", stgLangLbl: "Язык", stgThemeLbl: "Тема", stgThemeLight: "Светлая",
-        stgThemeDark: "Темная", stgShortcutsLbl: "Включить горячие клавиши",
-        stgShortcutTitle: "[ Горячие клавиши ]", stgShortcutNote: "(※Только ПК)", toMain: "Применить"
-      },
-      pt: {
-        lblName: "Nome", lblAuthor: "Autor", lblReadme: "Readme", lblEncoding: "Codificação",
-        btnIcon: "SELECIONAR IMAGEM", lblHeightTitle: "Altura", btnListen: "♪ Ouvir", btnGen: "GERAR!",
-        stgTitle: "Configurações", stgLangLbl: "Idioma", stgThemeLbl: "Tema", stgThemeLight: "Claro",
-        stgThemeDark: "Escuro", stgShortcutsLbl: "Ativar Atalhos",
-        stgShortcutTitle: "[ Teclas de Atalho ]", stgShortcutNote: "(※Apenas PC)", toMain: "Aplicar"
-      },
-      es: {
-        lblName: "Nombre", lblAuthor: "Autor", lblReadme: "Readme", lblEncoding: "Codificación",
-        btnIcon: "SELECCIONAR IMAGEN", lblHeightTitle: "Altura", btnListen: "♪ Escuchar", btnGen: "¡GENERAR!",
-        stgTitle: "Configuración", stgLangLbl: "Idioma", stgThemeLbl: "Tema", stgThemeLight: "Claro",
-        stgThemeDark: "Oscuro", stgShortcutsLbl: "Habilitar atajos",
-        stgShortcutTitle: "[ Teclas de atajo ]", stgShortcutNote: "(※Solo PC)", toMain: "Aplicar"
-      },
-      fr: {
-        lblName: "Nom", lblAuthor: "Auteur", lblReadme: "Lisez-moi", lblEncoding: "Encodage",
-        btnIcon: "CHOISIR UNE IMAGE", lblHeightTitle: "Hauteur", btnListen: "♪ Écouter", btnGen: "GÉNÉRER !",
-        stgTitle: "Paramètres", stgLangLbl: "Langue", stgThemeLbl: "Thème", stgThemeLight: "Clair",
-        stgThemeDark: "Sombre", stgShortcutsLbl: "Activer les raccourcis",
-        stgShortcutTitle: "[ Raccourcis clavier ]", stgShortcutNote: "(※PC uniquement)", toMain: "Appliquer"
-      },
-      it: {
-        lblName: "Nome", lblAuthor: "Autore", lblReadme: "Leggimi", lblEncoding: "Codifica",
-        btnIcon: "SELEZIONA IMMAGINE", lblHeightTitle: "Altezza", btnListen: "♪ Ascolta", btnGen: "GENERA!",
-        stgTitle: "Impostazioni", stgLangLbl: "Lingua", stgThemeLbl: "Tema", stgThemeLight: "Chiaro",
-        stgThemeDark: "Scuro", stgShortcutsLbl: "Abilita scorciatoie",
-        stgShortcutTitle: "[ Scorciatoie ]", stgShortcutNote: "(※Solo PC)", toMain: "Applica"
-      },
-      de: {
-        lblName: "Name", lblAuthor: "Autor", lblReadme: "Readme", lblEncoding: "Kodierung",
-        btnIcon: "BILD AUSWÄHLEN", lblHeightTitle: "Höhe", btnListen: "♪ Anhören", btnGen: "GENERIEREN!",
-        stgTitle: "Einstellungen", stgLangLbl: "Sprache", stgThemeLbl: "Thema", stgThemeLight: "Hell",
-        stgThemeDark: "Dunkel", stgShortcutsLbl: "Tastenkombinationen aktivieren",
-        stgShortcutTitle: "[ Tastenkombinationen ]", stgShortcutNote: "(※Nur PC)", toMain: "Anwenden"
-      },
-      pl: {
-        lblName: "Nazwa", lblAuthor: "Autor", lblReadme: "Readme", lblEncoding: "Kodowanie",
-        btnIcon: "WYBIERZ OBRAZ", lblHeightTitle: "Wysokość", btnListen: "♪ Posłuchaj", btnGen: "GENERUJ!",
-        stgTitle: "Ustawienia", stgLangLbl: "Język", stgThemeLbl: "Motyw", stgThemeLight: "Jasny",
-        stgThemeDark: "Ciemny", stgShortcutsLbl: "Włącz skróty",
-        stgShortcutTitle: "[ Skróty klawiszowe ]", stgShortcutNote: "(※Tylko PC)", toMain: "Zastosuj"
-      },
-      tr: {
-        lblName: "Ad", lblAuthor: "Yazar", lblReadme: "Benioku", lblEncoding: "Kodlama",
-        btnIcon: "GÖRSEL SEÇ", lblHeightTitle: "Yükseklik", btnListen: "♪ Dinle", btnGen: "OLUŞTUR!",
-        stgTitle: "Ayarlar", stgLangLbl: "Dil", stgThemeLbl: "Tema", stgThemeLight: "Açık",
-        stgThemeDark: "Koyu", stgShortcutsLbl: "Kısayolları Etkinleştir",
-        stgShortcutTitle: "[ Kısayol Tuşları ]", stgShortcutNote: "(※Yalnızca PC)", toMain: "Uygula"
-      },
-      vi: {
-        lblName: "Tên", lblAuthor: "Tác giả", lblReadme: "Đọc tôi", lblEncoding: "Mã hóa",
-        btnIcon: "CHỌN ẢNH", lblHeightTitle: "Chiều cao", btnListen: "♪ Nghe", btnGen: "TẠO!",
-        stgTitle: "Cài đặt", stgLangLbl: "Ngôn ngữ", stgThemeLbl: "Giao diện", stgThemeLight: "Sáng",
-        stgThemeDark: "Tối", stgShortcutsLbl: "Bật phím tắt",
-        stgShortcutTitle: "[ Phím tắt ]", stgShortcutNote: "(※Chỉ máy tính)", toMain: "Áp dụng"
-      },
-      fil: {
-        lblName: "Pangalan", lblAuthor: "May-akda", lblReadme: "Basahin", lblEncoding: "Encoding",
-        btnIcon: "PUMILI NG LARAWAN", lblHeightTitle: "Taas", btnListen: "♪ Makinig", btnGen: "GUMAWA!",
-        stgTitle: "Mga Setting", stgLangLbl: "Wika", stgThemeLbl: "Tema", stgThemeLight: "Maliwanag",
-        stgThemeDark: "Madilim", stgShortcutsLbl: "Paganahin ang Shortcuts",
-        stgShortcutTitle: "[ Mga Shortcut ]", stgShortcutNote: "(※PC lang)", toMain: "Ilapat"
-      },
-      th: {
-        lblName: "ชื่อ", lblAuthor: "ผู้แต่ง", lblReadme: "อ่านฉัน", lblEncoding: "การเข้ารหัส",
-        btnIcon: "เลือกรูปภาพ", lblHeightTitle: "ความสูง", btnListen: "♪ ฟัง", btnGen: "สร้าง!",
-        stgTitle: "ตั้งค่า", stgLangLbl: "ภาษา", stgThemeLbl: "ธีม", stgThemeLight: "สว่าง",
-        stgThemeDark: "มืด", stgShortcutsLbl: "เปิดใช้งานทางลัด",
-        stgShortcutTitle: "[ ปุ่มลัด ]", stgShortcutNote: "(※เฉพาะ PC เท่านั้น)", toMain: "นำไปใช้"
-      }
+      ja: { lblName: "名前", lblAuthor: "作者", lblReadme: "説明", lblEncoding: "文字コード", btnIcon: "画像を選択", lblHeightTitle: "高さ", btnListen: "♪ 試聴", btnGen: "音源を作る！", stgTitle: "設定", stgLangLbl: "言語", stgThemeLbl: "テーマ", stgThemeLight: "ライト", stgThemeDark: "ダーク", stgShortcutsLbl: "ショートカットを有効にする", stgShortcutTitle: "[ ショートカットキー ]", stgShortcutNote: "(※パソコン限定)", toMain: "適用して閉じる" },
+      en: { lblName: "Name", lblAuthor: "Author", lblReadme: "Readme", lblEncoding: "Encoding", btnIcon: "SELECT IMAGE", lblHeightTitle: "Height", btnListen: "♪ Listen", btnGen: "GENERATE!", stgTitle: "Settings", stgLangLbl: "Language", stgThemeLbl: "Theme", stgThemeLight: "Light", stgThemeDark: "Dark", stgShortcutsLbl: "Enable Shortcuts", stgShortcutTitle: "[ Shortcut Keys ]", stgShortcutNote: "(※PC only)", toMain: "Apply" },
+      'en-us': { lblName: "Name", lblAuthor: "Author", lblReadme: "Readme", lblEncoding: "Encoding", btnIcon: "SELECT IMAGE", lblHeightTitle: "Height", btnListen: "♪ Listen", btnGen: "GENERATE!", stgTitle: "Settings", stgLangLbl: "Language", stgThemeLbl: "Theme", stgThemeLight: "Light", stgThemeDark: "Dark", stgShortcutsLbl: "Enable Shortcuts", stgShortcutTitle: "[ Shortcut Keys ]", stgShortcutNote: "(※PC only)", toMain: "Apply" },
+      ko: { lblName: "이름", lblAuthor: "작성자", lblReadme: "설명", lblEncoding: "인코딩", btnIcon: "이미지 선택", lblHeightTitle: "높이", btnListen: "♪ 들어보기", btnGen: "음원 생성!", stgTitle: "설정", stgLangLbl: "언어", stgThemeLbl: "테마", stgThemeLight: "라이트", stgThemeDark: "다크", stgShortcutsLbl: "단축키 활성화", stgShortcutTitle: "[ 단축키 ]", stgShortcutNote: "(※PC 전용)", toMain: "적용" },
+      'zh-cn': { lblName: "姓名", lblAuthor: "作者", lblReadme: "说明", lblEncoding: "编码", btnIcon: "选择图像", lblHeightTitle: "高度", btnListen: "♪ 试听", btnGen: "生成音源！", stgTitle: "设置", stgLangLbl: "语言", stgThemeLbl: "主题", stgThemeLight: "浅色", stgThemeDark: "深色", stgShortcutsLbl: "启用快捷键", stgShortcutTitle: "[ 快捷键 ]", stgShortcutNote: "(※仅限电脑)", toMain: "应用" },
+      'zh-tw': { lblName: "姓名", lblAuthor: "作者", lblReadme: "說明", lblEncoding: "編碼", btnIcon: "選擇圖片", lblHeightTitle: "高度", btnListen: "♪ 試聽", btnGen: "產生音源！", stgTitle: "設定", stgLangLbl: "語言", stgThemeLbl: "主題", stgThemeLight: "淺色", stgThemeDark: "深色", stgShortcutsLbl: "啟用快捷鍵", stgShortcutTitle: "[ 快捷鍵 ]", stgShortcutNote: "(※僅限電腦)", toMain: "套用" },
+      'zh-hk': { lblName: "姓名", lblAuthor: "作者", lblReadme: "說明", lblEncoding: "編碼", btnIcon: "選擇圖片", lblHeightTitle: "高度", btnListen: "♪ 試聽", btnGen: "產生音源！", stgTitle: "設定", stgLangLbl: "語言", stgThemeLbl: "主題", stgThemeLight: "淺色", stgThemeDark: "深色", stgShortcutsLbl: "啟用快捷鍵", stgShortcutTitle: "[ 快捷鍵 ]", stgShortcutNote: "(※僅限電腦)", toMain: "套用" },
+      ru: { lblName: "Имя", lblAuthor: "Автор", lblReadme: "Описание", lblEncoding: "Кодировка", btnIcon: "ВЫБРАТЬ ИЗОБРАЖЕНИЕ", lblHeightTitle: "Высота", btnListen: "♪ Прослушать", btnGen: "СОЗДАТЬ!", stgTitle: "Настройки", stgLangLbl: "Язык", stgThemeLbl: "Тема", stgThemeLight: "Светлая", stgThemeDark: "Темная", stgShortcutsLbl: "Включить горячие клавиши", stgShortcutTitle: "[ Горячие клавиши ]", stgShortcutNote: "(※Только ПК)", toMain: "Применить" },
+      pt: { lblName: "Nome", lblAuthor: "Autor", lblReadme: "Readme", lblEncoding: "Codificação", btnIcon: "SELECIONAR IMAGEM", lblHeightTitle: "Altura", btnListen: "♪ Ouvir", btnGen: "GERAR!", stgTitle: "Configurações", stgLangLbl: "Idioma", stgThemeLbl: "Tema", stgThemeLight: "Claro", stgThemeDark: "Escuro", stgShortcutsLbl: "Ativar Atalhos", stgShortcutTitle: "[ Teclas de Atalho ]", stgShortcutNote: "(※Apenas PC)", toMain: "Aplicar" },
+      es: { lblName: "Nombre", lblAuthor: "Autor", lblReadme: "Readme", lblEncoding: "Codificación", btnIcon: "SELECCIONAR IMAGEN", lblHeightTitle: "Altura", btnListen: "♪ Escuchar", btnGen: "¡GENERAR!", stgTitle: "Configuración", stgLangLbl: "Idioma", stgThemeLbl: "Tema", stgThemeLight: "Claro", stgThemeDark: "Oscuro", stgShortcutsLbl: "Habilitar atajos", stgShortcutTitle: "[ Teclas de atajo ]", stgShortcutNote: "(※Solo PC)", toMain: "Aplicar" },
+      fr: { lblName: "Nom", lblAuthor: "Auteur", lblReadme: "Lisez-moi", lblEncoding: "Encodage", btnIcon: "CHOISIR UNE IMAGE", lblHeightTitle: "Hauteur", btnListen: "♪ Écouter", btnGen: "GÉNÉRER !", stgTitle: "Paramètres", stgLangLbl: "Langue", stgThemeLbl: "Thème", stgThemeLight: "Clair", stgThemeDark: "Sombre", stgShortcutsLbl: "Activer les raccourcis", stgShortcutTitle: "[ Raccourcis clavier ]", stgShortcutNote: "(※PC uniquement)", toMain: "Appliquer" },
+      it: { lblName: "Nome", lblAuthor: "Autore", lblReadme: "Leggimi", lblEncoding: "Codifica", btnIcon: "SELEZIONA IMMAGINE", lblHeightTitle: "Altezza", btnListen: "♪ Ascolta", btnGen: "GENERA!", stgTitle: "Impostazioni", stgLangLbl: "Lingua", stgThemeLbl: "Tema", stgThemeLight: "Chiaro", stgThemeDark: "Scuro", stgShortcutsLbl: "Abilita scorciatoie", stgShortcutTitle: "[ Scorciatoie ]", stgShortcutNote: "(※Solo PC)", toMain: "Applica" },
+      de: { lblName: "Name", lblAuthor: "Autor", lblReadme: "Readme", lblEncoding: "Kodierung", btnIcon: "BILD AUSWÄHLEN", lblHeightTitle: "Höhe", btnListen: "♪ Anhören", btnGen: "GENERIEREN!", stgTitle: "Einstellungen", stgLangLbl: "Sprache", stgThemeLbl: "Thema", stgThemeLight: "Hell", stgThemeDark: "Dunkel", stgShortcutsLbl: "Tastenkombinationen aktivieren", stgShortcutTitle: "[ Tastenkombinationen ]", stgShortcutNote: "(※Nur PC)", toMain: "Anwenden" },
+      pl: { lblName: "Nazwa", lblAuthor: "Autor", lblReadme: "Readme", lblEncoding: "Kodowanie", btnIcon: "WYBIERZ OBRAZ", lblHeightTitle: "Wysokość", btnListen: "♪ Posłuchaj", btnGen: "GENERUJ!", stgTitle: "Ustawienia", stgLangLbl: "Język", stgThemeLbl: "Motyw", stgThemeLight: "Jasny", stgThemeDark: "Ciemny", stgShortcutsLbl: "Włącz skróty", stgShortcutTitle: "[ Skróty klawiszowe ]", stgShortcutNote: "(※Tylko PC)", toMain: "Zastosuj" },
+      tr: { lblName: "Ad", lblAuthor: "Yazar", lblReadme: "Benioku", lblEncoding: "Kodlama", btnIcon: "GÖRSEL SEÇ", lblHeightTitle: "Yükseklik", btnListen: "♪ Dinle", btnGen: "OLUŞTUR!", stgTitle: "Ayarlar", stgLangLbl: "Dil", stgThemeLbl: "Tema", stgThemeLight: "Açık", stgThemeDark: "Koyu", stgShortcutsLbl: "Kısayolları Etkinleştir", stgShortcutTitle: "[ Kısayol Tuşları ]", stgShortcutNote: "(※Yalnızca PC)", toMain: "Uygula" },
+      vi: { lblName: "Tên", lblAuthor: "Tác giả", lblReadme: "Đọc tôi", lblEncoding: "Mã hóa", btnIcon: "CHỌN ẢNH", lblHeightTitle: "Chiều cao", btnListen: "♪ Nghe", btnGen: "TẠO!", stgTitle: "Cài đặt", stgLangLbl: "Ngôn ngữ", stgThemeLbl: "Giao diện", stgThemeLight: "Sáng", stgThemeDark: "Tối", stgShortcutsLbl: "Bật phím tắt", stgShortcutTitle: "[ Phím tắt ]", stgShortcutNote: "(※Chỉ máy tính)", toMain: "Áp dụng" },
+      fil: { lblName: "Pangalan", lblAuthor: "May-akda", lblReadme: "Basahin", lblEncoding: "Encoding", btnIcon: "PUMILI NG LARAWAN", lblHeightTitle: "Taas", btnListen: "♪ Makinig", btnGen: "GUMAWA!", stgTitle: "Mga Setting", stgLangLbl: "Wika", stgThemeLbl: "Tema", stgThemeLight: "Maliwanag", stgThemeDark: "Madilim", stgShortcutsLbl: "Paganahin ang Shortcuts", stgShortcutTitle: "[ Mga Shortcut ]", stgShortcutNote: "(※PC lang)", toMain: "Ilapat" },
+      th: { lblName: "ชื่อ", lblAuthor: "ผู้แต่ง", lblReadme: "อ่านฉัน", lblEncoding: "การเข้ารหัส", btnIcon: "เลือกรูปภาพ", lblHeightTitle: "ความสูง", btnListen: "♪ ฟัง", btnGen: "สร้าง!", stgTitle: "ตั้งค่า", stgLangLbl: "ภาษา", stgThemeLbl: "ธีม", stgThemeLight: "สว่าง", stgThemeDark: "มืด", stgShortcutsLbl: "เปิดใช้งานทางลัด", stgShortcutTitle: "[ ปุ่มลัด ]", stgShortcutNote: "(※เฉพาะ PC เท่านั้น)", toMain: "นำไปใช้" }
     };
-
     const silentNotes = {
       ja: "音が出ない場合は、iPhoneの消音モード（本体左側のスイッチ）をオフにしてください",
       en: "If you hear no sound, turn off Silent Mode (the switch on the left side of your iPhone).",
@@ -682,11 +585,9 @@
     const isIPhone = /iPhone|iPod/.test(navigator.userAgent);
     const silentNoteEl = document.getElementById('silent-note');
     if (isIPhone) silentNoteEl.style.display = 'block';
-
     function switchLanguage(lang) {
       const t = translations[lang] || translations['en'];
       silentNoteEl.textContent = silentNotes[lang] || silentNotes['en'];
-
       document.getElementById('lbl-name').textContent = t.lblName;
       document.getElementById('lbl-author').textContent = t.lblAuthor;
       document.getElementById('lbl-readme').textContent = t.lblReadme;
@@ -695,7 +596,6 @@
       document.getElementById('lbl-height-title').textContent = t.lblHeightTitle;
       document.getElementById('btn-listen').textContent = t.btnListen;
       document.getElementById('btn-gen').textContent = t.btnGen;
-
       document.getElementById('stg-title').textContent = t.stgTitle;
       document.getElementById('stg-lang-lbl').textContent = t.stgLangLbl;
       document.getElementById('stg-theme-lbl').textContent = t.stgThemeLbl;
@@ -707,478 +607,149 @@
       document.getElementById('to-main').textContent = t.toMain;
     }
 
-    // =====================================================
-    //  ZIP生成機能（GENERATE! ボタン） ※Utaun_CUI.py と同じ処理
-    //  ライブラリ不要。
-    //
-    //  index.html と同じ場所に次のファイルを置いてください:
-    //    oto.ini
-    //    consonants/ フォルダ（子音のwav）
-    //    consonants/list.json （子音wavのファイル名一覧。例: ["か.wav","ki.wav"]）
-    //  list.json が無い場合は、consonants/ka.wav や consonants/か.wav のように
-    //  ローマ字名 or ひらがな名のファイルを直接探します。
-    // =====================================================
+    // --- Theme handling ---
+    const themeRadios = document.querySelectorAll('input[name="theme"]');
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        document.body.classList.add('dark');
+      } else {
+        document.body.classList.remove('dark');
+      }
+      localStorage.setItem('utaun-theme', theme);
+    }
+    themeRadios.forEach(r => {
+      r.addEventListener('change', (e) => applyTheme(e.target.value));
+    });
+    // Load saved theme
+    const savedTheme = localStorage.getItem('utaun-theme');
+    if (savedTheme) {
+      const radio = document.querySelector(`input[name="theme"][value="${savedTheme}"]`);
+      if (radio) radio.checked = true;
+      applyTheme(savedTheme);
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.querySelector('input[name="theme"][value="dark"]').checked = true;
+      applyTheme('dark');
+    }
+
+
     (function () {
       const OTO_URL = 'oto.ini';
       const CONSONANT_DIR = 'consonants/';
       const CONSONANT_LIST_URL = CONSONANT_DIR + 'list.json';
       const SR = 44100;
-
-      // --- CRC32 ---
       const crcTable = (() => {
         const t = new Uint32Array(256);
-        for (let n = 0; n < 256; n++) {
-          let c = n;
-          for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
-          t[n] = c >>> 0;
-        }
+        for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; }
         return t;
       })();
-      function crc32(bytes) {
-        let c = 0xFFFFFFFF;
-        for (let i = 0; i < bytes.length; i++) c = crcTable[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
-        return (c ^ 0xFFFFFFFF) >>> 0;
-      }
-
-      // --- 圧縮（対応ブラウザのみ。非対応なら無圧縮） ---
+      function crc32(bytes) { let c = 0xFFFFFFFF; for (let i = 0; i < bytes.length; i++) c = crcTable[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
       const deflateCache = new WeakMap();
       async function deflateRaw(data) {
         if (typeof CompressionStream === 'undefined') return null;
         if (deflateCache.has(data)) return deflateCache.get(data);
-        try {
-          const stream = new Blob([data]).stream().pipeThrough(new CompressionStream('deflate-raw'));
-          const out = new Uint8Array(await new Response(stream).arrayBuffer());
-          deflateCache.set(data, out);
-          return out;
-        } catch (e) {
-          return null;
-        }
+        try { const stream = new Blob([data]).stream().pipeThrough(new CompressionStream('deflate-raw')); const out = new Uint8Array(await new Response(stream).arrayBuffer()); deflateCache.set(data, out); return out; } catch (e) { return null; }
       }
-
-      // --- ZIPの組み立て ---
       async function makeZip(entries) {
-        const enc = new TextEncoder();
-        const now = new Date();
+        const enc = new TextEncoder(); const now = new Date();
         const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
         const dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
-        const chunks = [];
-        const central = [];
-        let offset = 0;
-
+        const chunks = []; const central = []; let offset = 0;
         for (const [name, data] of entries) {
-          const nameBytes = enc.encode(name);
-          const crc = crc32(data);
-          const comp = await deflateRaw(data);
-          const useComp = comp && comp.length < data.length;
-          const payload = useComp ? comp : data;
-          const method = useComp ? 8 : 0;
-
-          const lh = new DataView(new ArrayBuffer(30));
-          lh.setUint32(0, 0x04034b50, true);
-          lh.setUint16(4, 20, true);
-          lh.setUint16(6, 0x0800, true); // ファイル名はUTF-8
-          lh.setUint16(8, method, true);
-          lh.setUint16(10, dosTime, true);
-          lh.setUint16(12, dosDate, true);
-          lh.setUint32(14, crc, true);
-          lh.setUint32(18, payload.length, true);
-          lh.setUint32(22, data.length, true);
-          lh.setUint16(26, nameBytes.length, true);
-          lh.setUint16(28, 0, true);
+          const nameBytes = enc.encode(name); const crc = crc32(data); const comp = await deflateRaw(data);
+          const useComp = comp && comp.length < data.length; const payload = useComp ? comp : data; const method = useComp ? 8 : 0;
+          const lh = new DataView(new ArrayBuffer(30)); lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, method, true); lh.setUint16(10, dosTime, true); lh.setUint16(12, dosDate, true); lh.setUint32(14, crc, true); lh.setUint32(18, payload.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, nameBytes.length, true); lh.setUint16(28, 0, true);
           chunks.push(new Uint8Array(lh.buffer), nameBytes, payload);
-
-          const ch = new DataView(new ArrayBuffer(46));
-          ch.setUint32(0, 0x02014b50, true);
-          ch.setUint16(4, 20, true);
-          ch.setUint16(6, 20, true);
-          ch.setUint16(8, 0x0800, true);
-          ch.setUint16(10, method, true);
-          ch.setUint16(12, dosTime, true);
-          ch.setUint16(14, dosDate, true);
-          ch.setUint32(16, crc, true);
-          ch.setUint32(20, payload.length, true);
-          ch.setUint32(24, data.length, true);
-          ch.setUint16(28, nameBytes.length, true);
-          ch.setUint32(42, offset, true);
+          const ch = new DataView(new ArrayBuffer(46)); ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, method, true); ch.setUint16(12, dosTime, true); ch.setUint16(14, dosDate, true); ch.setUint32(16, crc, true); ch.setUint32(20, payload.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, nameBytes.length, true); ch.setUint32(42, offset, true);
           central.push(new Uint8Array(ch.buffer), nameBytes);
-
           offset += 30 + nameBytes.length + payload.length;
         }
-
         const cdSize = central.reduce((s, a) => s + a.length, 0);
-        const eocd = new DataView(new ArrayBuffer(22));
-        eocd.setUint32(0, 0x06054b50, true);
-        eocd.setUint16(8, entries.size, true);
-        eocd.setUint16(10, entries.size, true);
-        eocd.setUint32(12, cdSize, true);
-        eocd.setUint32(16, offset, true);
-
+        const eocd = new DataView(new ArrayBuffer(22)); eocd.setUint32(0, 0x06054b50, true); eocd.setUint16(8, entries.size, true); eocd.setUint16(10, entries.size, true); eocd.setUint32(12, cdSize, true); eocd.setUint32(16, offset, true);
         return new Blob([...chunks, ...central, new Uint8Array(eocd.buffer)], { type: 'application/zip' });
       }
-
-      // --- Shift-JIS エンコード（ブラウザのデコーダから逆引き表を作る） ---
       let sjisMap = null;
       function buildSjisMap() {
-        const dec = new TextDecoder('shift_jis');
-        const map = new Map();
-        for (let b1 = 0x81; b1 <= 0xFC; b1++) {
-          if (b1 > 0x9F && b1 < 0xE0) continue;
-          for (let b2 = 0x40; b2 <= 0xFC; b2++) {
-            if (b2 === 0x7F) continue;
-            const ch = dec.decode(new Uint8Array([b1, b2]));
-            if (ch.length === 1 && ch !== '\uFFFD' && !map.has(ch)) map.set(ch, [b1, b2]);
-          }
-        }
+        const dec = new TextDecoder('shift_jis'); const map = new Map();
+        for (let b1 = 0x81; b1 <= 0xFC; b1++) { if (b1 > 0x9F && b1 < 0xE0) continue; for (let b2 = 0x40; b2 <= 0xFC; b2++) { if (b2 === 0x7F) continue; const ch = dec.decode(new Uint8Array([b1, b2])); if (ch.length === 1 && ch !== '\uFFFD' && !map.has(ch)) map.set(ch, [b1, b2]); } }
         return map;
       }
       function encodeSjis(str) {
-        if (!sjisMap) sjisMap = buildSjisMap();
-        const out = [];
-        for (const ch of str) {
-          const code = ch.codePointAt(0);
-          if (code < 0x80) out.push(code);
-          else if (code >= 0xFF61 && code <= 0xFF9F) out.push(code - 0xFF61 + 0xA1);
-          else {
-            const p = sjisMap.get(ch);
-            if (p) out.push(p[0], p[1]);
-            else out.push(0x3F); // 変換できない文字は ?
-          }
-        }
+        if (!sjisMap) sjisMap = buildSjisMap(); const out = [];
+        for (const ch of str) { const code = ch.codePointAt(0); if (code < 0x80) out.push(code); else if (code >= 0xFF61 && code <= 0xFF9F) out.push(code - 0xFF61 + 0xA1); else { const p = sjisMap.get(ch); if (p) out.push(p[0], p[1]); else out.push(0x3F); } }
         return new Uint8Array(out);
       }
-      function encodeText(str, encoding) {
-        if (encoding === 'shift_jis') {
-          try { return encodeSjis(str); }
-          catch (e) { alert('このブラウザはShift-JISに対応していないため、UTF-8で出力します'); }
-        }
-        return new TextEncoder().encode(str);
-      }
-
-      // --- 母音の合成（generate_vowel_data と同じ） ---
-      const RECIPES = {
-        'あ': [800, 1200], 'い': [300, 2200], 'う': [300, 900],
-        'え': [500, 1700], 'お': [400, 800], 'ん': [300, 800]
-      };
+      function encodeText(str, encoding) { if (encoding === 'shift_jis') { try { return encodeSjis(str); } catch (e) { alert('このブラウザはShift-JISに対応していないため、UTF-8で出力します'); } } return new TextEncoder().encode(str); }
+      const RECIPES = { 'あ': [800, 1200], 'い': [300, 2200], 'う': [300, 900], 'え': [500, 1700], 'お': [400, 800], 'ん': [300, 800] };
       function generateVowelData(vChar, height, duration = 1.0) {
-        const n = Math.floor(SR * duration);
-        const base = RECIPES[vChar] || [800, 1200];
-        const diff = Math.max(0, height - 200);
-        const targets = base.map(v => v + diff * 0.25);
-        const maxHarmonic = Math.floor(SR / 2 / height);
-
-        const harmonics = [];
-        for (let k = 1; k < Math.min(maxHarmonic, 30); k++) {
-          const freq = height * k;
-          let amp = 0;
-          targets.forEach(c => { amp += Math.exp(-Math.pow(freq - c, 2) / 50000); });
-          harmonics.push({ w: 2 * Math.PI * freq, a: amp / Math.pow(k, 1.2) });
-        }
-
-        const sig = new Float64Array(n);
-        let peak = 0;
-        for (let i = 0; i < n; i++) {
-          const t = i / SR;
-          let s = 0;
-          for (let j = 0; j < harmonics.length; j++) s += harmonics[j].a * Math.sin(harmonics[j].w * t);
-          sig[i] = s;
-          if (Math.abs(s) > peak) peak = Math.abs(s);
-        }
-        const out = new Int16Array(n);
-        if (peak > 0) {
-          const scale = 0.7 / peak * 32767;
-          for (let i = 0; i < n; i++) out[i] = Math.trunc(sig[i] * scale);
-        }
-        return out;
+        const n = Math.floor(SR * duration); const base = RECIPES[vChar] || [800, 1200]; const diff = Math.max(0, height - 200); const targets = base.map(v => v + diff * 0.25); const maxHarmonic = Math.floor(SR / 2 / height);
+        const harmonics = []; for (let k = 1; k < Math.min(maxHarmonic, 30); k++) { const freq = height * k; let amp = 0; targets.forEach(c => { amp += Math.exp(-Math.pow(freq - c, 2) / 50000); }); harmonics.push({ w: 2 * Math.PI * freq, a: amp / Math.pow(k, 1.2) }); }
+        const sig = new Float64Array(n); let peak = 0; for (let i = 0; i < n; i++) { const t = i / SR; let s = 0; for (let j = 0; j < harmonics.length; j++) s += harmonics[j].a * Math.sin(harmonics[j].w * t); sig[i] = s; if (Math.abs(s) > peak) peak = Math.abs(s); }
+        const out = new Int16Array(n); if (peak > 0) { const scale = 0.7 / peak * 32767; for (let i = 0; i < n; i++) out[i] = Math.trunc(sig[i] * scale); } return out;
       }
-
-      function concat(a, b) {
-        const out = new Int16Array(a.length + b.length);
-        out.set(a, 0);
-        out.set(b, a.length);
-        return out;
-      }
-
+      function concat(a, b) { const out = new Int16Array(a.length + b.length); out.set(a, 0); out.set(b, a.length); return out; }
       function int16ToWav(pcm) {
-        const n = pcm.length;
-        const buf = new ArrayBuffer(44 + n * 2);
-        const v = new DataView(buf);
+        const n = pcm.length; const buf = new ArrayBuffer(44 + n * 2); const v = new DataView(buf);
         const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
-        w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE');
-        w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
-        v.setUint16(22, 1, true); v.setUint32(24, SR, true);
-        v.setUint32(28, SR * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
-        w(36, 'data'); v.setUint32(40, n * 2, true);
-        for (let i = 0; i < n; i++) v.setInt16(44 + i * 2, pcm[i], true);
-        return new Uint8Array(buf);
+        w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, SR, true); v.setUint32(28, SR * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+        for (let i = 0; i < n; i++) v.setInt16(44 + i * 2, pcm[i], true); return new Uint8Array(buf);
       }
-
-      // --- 子音wavの読み込み ---
-      async function fetchBuf(url) {
-        const r = await fetch(url);
-        if (!r.ok) throw new Error(url + ' (' + r.status + ')');
-        return r.arrayBuffer();
-      }
-
+      async function fetchBuf(url) { const r = await fetch(url); if (!r.ok) throw new Error(url + ' (' + r.status + ')'); return r.arrayBuffer(); }
       function parseWav(buf, fileName, warnings) {
-        const v = new DataView(buf);
-        const tag = (p) => String.fromCharCode(v.getUint8(p), v.getUint8(p + 1), v.getUint8(p + 2), v.getUint8(p + 3));
+        const v = new DataView(buf); const tag = (p) => String.fromCharCode(v.getUint8(p), v.getUint8(p + 1), v.getUint8(p + 2), v.getUint8(p + 3));
         if (buf.byteLength < 12 || tag(0) !== 'RIFF') throw new Error(fileName + ' はwavではありません');
-        let pos = 12;
-        let fmt = null;
+        let pos = 12; let fmt = null;
         while (pos + 8 <= buf.byteLength) {
-          const id = tag(pos);
-          const size = v.getUint32(pos + 4, true);
-          if (id === 'fmt ') {
-            fmt = { ch: v.getUint16(pos + 10, true), sr: v.getUint32(pos + 12, true), bits: v.getUint16(pos + 22, true) };
-          }
-          if (id === 'data') {
-            const len = Math.min(size, buf.byteLength - pos - 8) >> 1;
-            if (fmt && (fmt.ch !== 1 || fmt.sr !== SR || fmt.bits !== 16)) {
-              warnings.add(fileName + '（' + fmt.sr + 'Hz / ' + fmt.bits + 'bit / ' + fmt.ch + 'ch）');
-            }
-            return new Int16Array(buf.slice(pos + 8, pos + 8 + len * 2));
-          }
+          const id = tag(pos); const size = v.getUint32(pos + 4, true);
+          if (id === 'fmt ') { fmt = { ch: v.getUint16(pos + 10, true), sr: v.getUint32(pos + 12, true), bits: v.getUint16(pos + 22, true) }; }
+          if (id === 'data') { const len = Math.min(size, buf.byteLength - pos - 8) >> 1; if (fmt && (fmt.ch !== 1 || fmt.sr !== SR || fmt.bits !== 16)) { warnings.add(fileName + '（' + fmt.sr + 'Hz / ' + fmt.bits + 'bit / ' + fmt.ch + 'ch）'); } return new Int16Array(buf.slice(pos + 8, pos + 8 + len * 2)); }
           pos += 8 + size + (size & 1);
         }
         throw new Error(fileName + ' にデータがありません');
       }
-
-      // --- BMP（24bit） ---
       function makeBmp(imgData) {
-        const w = imgData.width, h = imgData.height;
-        const rowSize = Math.ceil(w * 3 / 4) * 4;
-        const size = 54 + rowSize * h;
-        const buf = new ArrayBuffer(size);
-        const v = new DataView(buf);
-        v.setUint8(0, 0x42); v.setUint8(1, 0x4D);
-        v.setUint32(2, size, true);
-        v.setUint32(10, 54, true);
-        v.setUint32(14, 40, true);
-        v.setInt32(18, w, true);
-        v.setInt32(22, h, true);
-        v.setUint16(26, 1, true);
-        v.setUint16(28, 24, true);
-        v.setUint32(34, rowSize * h, true);
-        const px = imgData.data;
-        for (let y = 0; y < h; y++) {
-          const rowStart = 54 + (h - 1 - y) * rowSize;
-          for (let x = 0; x < w; x++) {
-            const i = (y * w + x) * 4;
-            const o = rowStart + x * 3;
-            v.setUint8(o, px[i + 2]);
-            v.setUint8(o + 1, px[i + 1]);
-            v.setUint8(o + 2, px[i]);
-          }
-        }
+        const w = imgData.width, h = imgData.height; const rowSize = Math.ceil(w * 3 / 4) * 4; const size = 54 + rowSize * h; const buf = new ArrayBuffer(size); const v = new DataView(buf);
+        v.setUint8(0, 0x42); v.setUint8(1, 0x4D); v.setUint32(2, size, true); v.setUint32(10, 54, true); v.setUint32(14, 40, true); v.setInt32(18, w, true); v.setInt32(22, h, true); v.setUint16(26, 1, true); v.setUint16(28, 24, true); v.setUint32(34, rowSize * h, true);
+        const px = imgData.data; for (let y = 0; y < h; y++) { const rowStart = 54 + (h - 1 - y) * rowSize; for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; const o = rowStart + x * 3; v.setUint8(o, px[i + 2]); v.setUint8(o + 1, px[i + 1]); v.setUint8(o + 2, px[i]); } }
         return new Uint8Array(buf);
       }
-
-      // --- アイコン: 中央を正方形に切り抜いて100x100 → icon.jpg と icon.bmp ---
       async function getIcon() {
-        const file = iconFileInput.files && iconFileInput.files[0];
-        if (!file) return null;
+        const file = iconFileInput.files && iconFileInput.files[0]; if (!file) return null;
         const url = URL.createObjectURL(file);
         try {
-          const img = await new Promise((res, rej) => {
-            const i = new Image();
-            i.onload = () => res(i);
-            i.onerror = () => rej(new Error('アイコン画像の読み込みに失敗しました'));
-            i.src = url;
-          });
-          const w = img.naturalWidth, h = img.naturalHeight;
-          const size = Math.min(w, h);
-          const c = document.createElement('canvas');
-          c.width = 100; c.height = 100;
-          const ctx = c.getContext('2d');
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, 0, 100, 100);
-          ctx.imageSmoothingQuality = 'high';
-          ctx.drawImage(img, (w - size) / 2, (h - size) / 2, size, size, 0, 0, 100, 100);
-          const jpgBlob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.95));
-          const jpg = new Uint8Array(await jpgBlob.arrayBuffer());
-          const bmp = makeBmp(ctx.getImageData(0, 0, 100, 100));
-          return { jpg, bmp };
-        } finally {
-          URL.revokeObjectURL(url);
-        }
+          const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('アイコン画像の読み込みに失敗しました')); i.src = url; });
+          const w = img.naturalWidth, h = img.naturalHeight; const size = Math.min(w, h); const c = document.createElement('canvas'); c.width = 100; c.height = 100; const ctx = c.getContext('2d'); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 100, 100); ctx.imageSmoothingQuality = 'high'; ctx.drawImage(img, (w - size) / 2, (h - size) / 2, size, size, 0, 0, 100, 100);
+          const jpgBlob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.95)); const jpg = new Uint8Array(await jpgBlob.arrayBuffer()); const bmp = makeBmp(ctx.getImageData(0, 0, 100, 100)); return { jpg, bmp };
+        } finally { URL.revokeObjectURL(url); }
       }
-
       function download(blob, filename) {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 10000);
       }
-
-      // [ローマ字(子音つき), ひらがな]  ※CUIの search_list と同じ
-      const SEARCH_LIST = [
-        ['ka','か'],['ki','き'],['ku','く'],['ke','け'],['ko','こ'],
-        ['sa','さ'],['shi','し'],['su','す'],['se','せ'],['so','そ'],
-        ['ta','た'],['chi','ち'],['tsu','つ'],['te','て'],['to','と'],
-        ['na','な'],['ni','に'],['nu','ぬ'],['ne','ね'],['no','の'],
-        ['ha','は'],['hi','ひ'],['hu','ふ'],['he','へ'],['ho','ほ'],
-        ['ma','ま'],['mi','み'],['mu','む'],['me','め'],['mo','も'],
-        ['ya','や'],['yu','ゆ'],['yo','よ'],
-        ['ra','ら'],['ri','り'],['ru','る'],['re','れ'],['ro','ろ'],
-        ['wa','わ'],['wo','を'],
-        ['ga','が'],['gi','ぎ'],['gu','ぐ'],['ge','げ'],['go','ご'],
-        ['za','ざ'],['ji','じ'],['zu','ず'],['ze','ぜ'],['zo','ぞ'],
-        ['da','だ'],['di','ぢ'],['du','づ'],['de','で'],['do','ど'],
-        ['ba','ば'],['bi','び'],['bu','ぶ'],['be','べ'],['bo','ぼ'],
-        ['pa','ぱ'],['pi','ぴ'],['pu','ぷ'],['pe','ぺ'],['po','ぽ']
-      ];
-
-      // --- GENERATE! ボタン ---
+      const SEARCH_LIST = [['ka','か'],['ki','き'],['ku','く'],['ke','け'],['ko','こ'],['sa','さ'],['shi','し'],['su','す'],['se','せ'],['so','そ'],['ta','た'],['chi','ち'],['tsu','つ'],['te','て'],['to','と'],['na','な'],['ni','に'],['nu','ぬ'],['ne','ね'],['no','の'],['ha','は'],['hi','ひ'],['hu','ふ'],['he','へ'],['ho','ほ'],['ma','ま'],['mi','み'],['mu','む'],['me','め'],['mo','も'],['ya','や'],['yu','ゆ'],['yo','よ'],['ra','ら'],['ri','り'],['ru','る'],['re','れ'],['ro','ろ'],['wa','わ'],['wo','を'],['ga','が'],['gi','ぎ'],['gu','ぐ'],['ge','げ'],['go','ご'],['za','ざ'],['ji','じ'],['zu','ず'],['ze','ぜ'],['zo','ぞ'],['da','だ'],['di','ぢ'],['du','づ'],['de','で'],['do','ど'],['ba','ば'],['bi','び'],['bu','ぶ'],['be','べ'],['bo','ぼ'],['pa','ぱ'],['pi','ぴ'],['pu','ぷ'],['pe','ぺ'],['po','ぽ']];
       const genBtn = document.getElementById('btn-gen');
       genBtn.addEventListener('click', async () => {
-        const orig = genBtn.textContent;
-        genBtn.disabled = true;
-        genBtn.textContent = '...';
-        await new Promise(r => setTimeout(r, 30));
-
+        const orig = genBtn.textContent; genBtn.disabled = true; genBtn.textContent = '...'; await new Promise(r => setTimeout(r, 30));
         try {
-          const norm = (s) => s.normalize('NFC');
-          const cName = norm(document.getElementById('input-name').value.trim() || 'NewVoice');
-          const author = norm(document.getElementById('input-author').value.trim() || 'User');
-          const readme = norm(document.getElementById('input-readme').value);
-          const encoding = document.querySelector('input[name="encoding"]:checked').value;
-          const height = parseInt(slider.value, 10) || 475;
-          const folder = cName.replace(/[\\/:*?"<>|]/g, '_') + '/';
-          const enc = (s) => encodeText(s, encoding);
-          const warnings = new Set();
-
-          // oto.ini（そのままコピー）
-          let otoBytes;
-          try {
-            otoBytes = new Uint8Array(await fetchBuf(OTO_URL));
-          } catch (e) {
-            throw new Error('「oto.ini」が見つかりません。index.html と同じ場所に置いてください。');
-          }
-
-          // 子音wavの一覧
-          let consonantList = null;
-          try {
-            const r = await fetch(CONSONANT_LIST_URL);
-            if (r.ok) {
-              const text = (await r.text()).replace(/^\uFEFF/, '');
-              let arr;
-              try {
-                arr = JSON.parse(text);            // ["a.wav","b.wav"] 形式
-              } catch (e) {
-                arr = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean); // 1行1ファイル形式
-              }
-              consonantList = arr; // 取得用に元の名前のまま持つ（照合時だけNFCにそろえる）
-            }
-          } catch (e) {}
+          const norm = (s) => s.normalize('NFC'); const cName = norm(document.getElementById('input-name').value.trim() || 'NewVoice'); const author = norm(document.getElementById('input-author').value.trim() || 'User'); const readme = norm(document.getElementById('input-readme').value); const encoding = document.querySelector('input[name="encoding"]:checked').value; const height = parseInt(slider.value, 10) || 475; const folder = cName.replace(/[\\/:*?"<>|]/g, '_') + '/'; const enc = (s) => encodeText(s, encoding); const warnings = new Set();
+          let otoBytes; try { otoBytes = new Uint8Array(await fetchBuf(OTO_URL)); } catch (e) { throw new Error('「oto.ini」が見つかりません。index.html と同じ場所に置いてください。'); }
+          let consonantList = null; try { const r = await fetch(CONSONANT_LIST_URL); if (r.ok) { const text = (await r.text()).replace(/^\uFEFF/, ''); let arr; try { arr = JSON.parse(text); } catch (e) { arr = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean); } consonantList = arr; } } catch (e) {}
           const wavCache = new Map();
-          async function loadConsonant(file) {
-            if (wavCache.has(file)) return wavCache.get(file);
-            // iPhone/Macで作ったファイル名は濁点が分解された形(NFD)のことがあるので、両方試す
-            const tries = [...new Set([file, file.normalize('NFD'), file.normalize('NFC')])];
-            let buf = null, lastErr = null;
-            for (const nm of tries) {
-              try { buf = await fetchBuf(CONSONANT_DIR + encodeURIComponent(nm)); break; }
-              catch (e) { lastErr = e; }
-            }
-            if (!buf) throw lastErr;
-            const pcm = parseWav(buf, file, warnings);
-            wavCache.set(file, pcm);
-            return pcm;
-          }
-          async function findConsonant(roma, hira) {
-            if (consonantList) {
-              const f = consonantList.find(n => {
-                const s = norm(n);
-                return (s.includes(roma) || s.includes(hira)) && s.endsWith('.wav');
-              });
-              return f ? loadConsonant(f) : null;
-            }
-            for (const f of [roma + '.wav', hira + '.wav']) {
-              try { return await loadConsonant(f); } catch (e) {}
-            }
-            return null;
-          }
-
-          const entries = new Map(); // 同じ名前は後勝ち
-          const put = (name, data) => entries.set(folder + name, data);
-
-          // アイコン
-          const icon = await getIcon();
-          if (icon) {
-            put('icon.bmp', icon.bmp);
-            put('icon.jpg', icon.jpg);
-          }
-
-          // character.txt / readme.txt
-          put('character.txt', enc('name=' + cName + '\r\nimage=icon.jpg\r\nauthor=' + author));
-          put('readme.txt', enc(readme.replace(/\r?\n/g, '\r\n')));
-
-          // 母音
-          const vDict = {};
-          for (const v of 'あいうえおん') vDict[v] = generateVowelData(v, height);
-          const vRoma = { 'あ': 'a', 'い': 'i', 'う': 'u', 'え': 'e', 'お': 'o', 'ん': 'nn' };
-          for (const v of 'あいうえおん') {
-            const wav = int16ToWav(vDict[v]);
-            put(v + '.wav', wav);
-            put(vRoma[v] + '.wav', wav);
-          }
-
-          // m / n / y / w 行
-          const mapping = {
-            m: ['ん', 4410, 'まみむめも'],
-            n: ['ん', 2205, 'なにぬねの'],
-            y: ['い', 4410, 'やゆよ'],
-            w: ['う', 4410, 'わを']
-          };
-          for (const row of Object.keys(mapping)) {
-            const [baseV, length, hiraRow] = mapping[row];
-            const sub = vDict[baseV].subarray(0, length);
-            const targets = (row === 'm' || row === 'n')
-              ? [['あ','a',0],['い','i',1],['う','u',2],['え','e',3],['お','o',4]]
-              : row === 'y'
-                ? [['あ','a',0],['う','u',1],['お','o',2]]
-                : [['あ','a',0],['お','o',1]];
-            for (const [vHira, vRomaCh, idx] of targets) {
-              const wav = int16ToWav(concat(sub, vDict[vHira]));
-              put(row + vRomaCh + '.wav', wav);
-              put(hiraRow[idx] + '.wav', wav);
-            }
-          }
-
-          // 子音つきの音（か行など）
-          const vCharMap = { a: 'あ', i: 'い', u: 'う', e: 'え', o: 'お' };
-          let found = 0;
-          for (const [roma, hira] of SEARCH_LIST) {
-            const cData = await findConsonant(roma, hira);
-            if (!cData) continue;
-            found++;
-            const vHira = vCharMap[roma[roma.length - 1]] || 'あ';
-            const wav = int16ToWav(concat(cData, vDict[vHira]));
-            put(roma + '.wav', wav);
-            put(hira + '.wav', wav);
-          }
-
-          put('oto.ini', otoBytes);
-
-          const blob = await makeZip(entries);
-          download(blob, cName.replace(/[\\/:*?"<>|]/g, '_') + '.zip');
-
-          const msgs = [];
-          if (found === 0) msgs.push('子音のwavが1つも見つかりませんでした（consonants フォルダを確認してください）。母音と m/n/y/w 行だけ出力しました。');
-          if (warnings.size) msgs.push('44100Hz / 16bit / モノラル以外のwavがあります:\n' + [...warnings].join('\n'));
-          if (msgs.length) alert(msgs.join('\n\n'));
-        } catch (err) {
-          alert('生成エラー: ' + err.message);
-        } finally {
-          genBtn.disabled = false;
-          genBtn.textContent = orig;
-        }
+          async function loadConsonant(file) { if (wavCache.has(file)) return wavCache.get(file); const tries = [...new Set([file, file.normalize('NFD'), file.normalize('NFC')])]; let buf = null, lastErr = null; for (const nm of tries) { try { buf = await fetchBuf(CONSONANT_DIR + encodeURIComponent(nm)); break; } catch (e) { lastErr = e; } } if (!buf) throw lastErr; const pcm = parseWav(buf, file, warnings); wavCache.set(file, pcm); return pcm; }
+          async function findConsonant(roma, hira) { if (consonantList) { const f = consonantList.find(n => { const s = norm(n); return (s.includes(roma) || s.includes(hira)) && s.endsWith('.wav'); }); return f ? loadConsonant(f) : null; } for (const f of [roma + '.wav', hira + '.wav']) { try { return await loadConsonant(f); } catch (e) {} } return null; }
+          const entries = new Map(); const put = (name, data) => entries.set(folder + name, data);
+          const icon = await getIcon(); if (icon) { put('icon.bmp', icon.bmp); put('icon.jpg', icon.jpg); }
+          put('character.txt', enc('name=' + cName + '\r\nimage=icon.jpg\r\nauthor=' + author)); put('readme.txt', enc(readme.replace(/\r?\n/g, '\r\n')));
+          const vDict = {}; for (const v of 'あいうえおん') vDict[v] = generateVowelData(v, height); const vRoma = { 'あ': 'a', 'い': 'i', 'う': 'u', 'え': 'e', 'お': 'o', 'ん': 'nn' };
+          for (const v of 'あいうえおん') { const wav = int16ToWav(vDict[v]); put(v + '.wav', wav); put(vRoma[v] + '.wav', wav); }
+          const mapping = { m: ['ん', 4410, 'まみむめも'], n: ['ん', 2205, 'なにぬねの'], y: ['い', 4410, 'やゆよ'], w: ['う', 4410, 'わを'] };
+          for (const row of Object.keys(mapping)) { const [baseV, length, hiraRow] = mapping[row]; const sub = vDict[baseV].subarray(0, length); const targets = (row === 'm' || row === 'n') ? [['あ','a',0],['い','i',1],['う','u',2],['え','e',3],['お','o',4]] : row === 'y' ? [['あ','a',0],['う','u',1],['お','o',2]] : [['あ','a',0],['お','o',1]]; for (const [vHira, vRomaCh, idx] of targets) { const wav = int16ToWav(concat(sub, vDict[vHira])); put(row + vRomaCh + '.wav', wav); put(hiraRow[idx] + '.wav', wav); } }
+          const vCharMap = { a: 'あ', i: 'い', u: 'う', e: 'え', o: 'お' }; let found = 0;
+          for (const [roma, hira] of SEARCH_LIST) { const cData = await findConsonant(roma, hira); if (!cData) continue; found++; const vHira = vCharMap[roma[roma.length - 1]] || 'あ'; const wav = int16ToWav(concat(cData, vDict[vHira])); put(roma + '.wav', wav); put(hira + '.wav', wav); }
+          put('oto.ini', otoBytes); const blob = await makeZip(entries); download(blob, cName.replace(/[\\/:*?"<>|]/g, '_') + '.zip');
+          const msgs = []; if (found === 0) msgs.push('子音のwavが1つも見つかりませんでした（consonants フォルダを確認してください）。母音と m/n/y/w 行だけ出力しました。'); if (warnings.size) msgs.push('44100Hz / 16bit / モノラル以外のwavがあります:\n' + [...warnings].join('\n')); if (msgs.length) alert(msgs.join('\n\n'));
+        } catch (err) { alert('生成エラー: ' + err.message); } finally { genBtn.disabled = false; genBtn.textContent = orig; }
       });
     })();
   </script>
-</body>
-</html>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script>
+
+</body></html>
