@@ -1,3 +1,5 @@
+# 過去にiPhone・AndroidのCUI版を目指して作ったものです。
+# ダウンロードしたい方、app形式やapk形式にしたい方はXのDMで教えてください。
 import os
 import tempfile
 import wave
