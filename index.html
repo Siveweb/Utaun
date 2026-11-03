@@ -693,7 +693,7 @@
       const RECIPES = { 'あ': [800, 1200],'い': [450, 2600],'う': [300, 1250],'え': [700, 2200],'お': [600, 850], 'ん': [300, 800] };
       function generateVowelData(vChar, height, duration = 1.0) {
         const n = Math.floor(SR * duration); const base = RECIPES[vChar] || [800, 1200]; const diff = Math.max(0, height - 200); const targets = base.map(v => v + diff * 0.25); const maxHarmonic = Math.floor(SR / 2 / height);
-        const harmonics = []; for (let k = 1; k < Math.min(maxHarmonic, 30); k++) { const freq = height * k; let amp = 0; targets.forEach(c => { amp += Math.exp(-Math.pow(freq - c, 2) / 50000); }); harmonics.push({ w: 2 * Math.PI * freq, a: amp / Math.pow(k, 1.2) }); }
+        const harmonics = []; for (let k = 1; k < Math.min(maxHarmonic, 60); k++) { const freq = height * k; let amp = 0; targets.forEach(c => { amp += Math.exp(-Math.pow(freq - c, 2) / 50000); }); harmonics.push({ w: 2 * Math.PI * freq, a: amp / Math.pow(k, 1.0) }); }
         const sig = new Float64Array(n); let peak = 0; for (let i = 0; i < n; i++) { const t = i / SR; let s = 0; for (let j = 0; j < harmonics.length; j++) s += harmonics[j].a * Math.sin(harmonics[j].w * t); sig[i] = s; if (Math.abs(s) > peak) peak = Math.abs(s); }
         const out = new Int16Array(n); if (peak > 0) { const scale = 0.7 / peak * 32767; for (let i = 0; i < n; i++) out[i] = Math.trunc(sig[i] * scale); } return out;
       }
