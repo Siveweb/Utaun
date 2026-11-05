@@ -430,6 +430,13 @@
       }
     }
   </script>
+  <script>
+  if (location.pathname.endsWith('/index.html')) {
+    location.replace(location.pathname.replace(/index\.html$/, ''));
+  }
+</script>
+<link rel="canonical" href="https://siveweb.github.io/Utaun-site/">
+<meta property="og:url" content="https://siveweb.github.io/Utaun-site/">
 <script>
     (function () {
       const OTO_URL = 'oto.ini';
