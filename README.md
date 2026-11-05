@@ -21,6 +21,11 @@ Utaun Official Website!
   <img src="image/無題284_20261001224229.png" alt="UtaunOfficialSite" width="150px"></a>
 <br>
 <br>
+
+### Utaun-Mode(Dazumiii)
+<br>
+<br>
+https://github.com/Dazumiii/Utaun-Mode
   
 ■ Rules for Code Rewriting and Plugin Creation
 
