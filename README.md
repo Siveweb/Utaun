@@ -23,7 +23,6 @@ Utaun Official Website!
 <br>
 
 ### Utaun-Mode(Dazumiii)
-<br>
 https://github.com/Dazumiii/Utaun-Mode
 <br>
 <br>
