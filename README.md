@@ -24,9 +24,9 @@ Utaun Official Website!
 
 ### Utaun-Mode(Dazumiii)
 <br>
-<br>
 https://github.com/Dazumiii/Utaun-Mode
   
+<br>
 ■ Rules for Code Rewriting and Plugin Creation
 
 ・**How to rewrite** To rewrite code, download the '.py' files from GitHub and experiment in your local environment such as your PC.
