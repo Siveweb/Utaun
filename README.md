@@ -9,11 +9,7 @@ Utaun is a Windows application that generates UTAU CV voicebanks solely through 
 **• 100% Inspired by 足立レイ (Adachi Rei): Utilizes the exact same conceptual approach to shape clear, crisp artificial vowels using pure sine waves.**  
 <br>
 <br>
-Click here for the official Discord server!
 
-<a href="https://discord.gg/DnU3R5p85">
-  <img src="image/無題284_20261001224000.png" alt="Discord" width="150px">
-</a>
 
 Utaun Official Website! 
 
